@@ -1,0 +1,58 @@
+{
+  "compilerOptions": {
+    // Target modern JavaScript to leverage the latest features
+    "target": "ES2022",
+
+    // Use ES module syntax, compatible with modern environments like Node.js and browsers
+    "module": "NodeNext",
+
+    // Output to CommonJS, ESM, or SystemJS depending on your environment
+    "moduleResolution": "NodeNext",
+
+    // Change output structure to preserve directory structure
+    "rootDir": "./src",
+
+    // Set the directory where TypeScript should output compiled files
+    "outDir": "./dist",
+
+    // Source map for easier debugging
+    "sourceMap": true,
+
+    // Enable strict type-checking options for safer and cleaner code
+    "strict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+
+    // Type-check for ECMAScript modules (e.g., import/export) and class fields
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
+    // Enables incremental builds for faster recompilation
+    "incremental": true,
+
+    // Prefer modern features like optional chaining, nullish coalescing, etc.
+    "useDefineForClassFields": true,
+
+    // Choose to import helpers rather than duplicating them in each file
+    "importHelpers": true,
+
+    // Define how TypeScript resolves modules in your code
+    "resolveJsonModule": true,
+
+    // Opt-in to the latest features, like `??=` and `||=`
+    "useUnknownInCatchVariables": true,
+
+    // Limit TypeScript's recursion depth to prevent stack overflows in complex types
+    "maxNodeModuleJsDepth": 2,
+
+    // Node.js types and DOM types for browser-based projects
+    "lib": ["ES2022", "DOM", "dom.iterable"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "tests/**/*.test.ts"]
+}

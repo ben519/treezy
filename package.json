@@ -1,0 +1,25 @@
+{
+  "name": "treedata",
+  "version": "0.0.1",
+  "repository": {
+    "url": "https://https://github.com/ben519/treedata"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup"
+  },
+  "keywords": [
+    "tree structure",
+    "hierarchical data",
+    "nested data"
+  ],
+  "author": "neb519",
+  "license": "MIT",
+  "description": "treedata is a package for storing and manipulating hierarchical data. For example, comments on Reddit or YouTube.",
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3"
+  }
+}
