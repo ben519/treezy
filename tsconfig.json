@@ -54,5 +54,5 @@
     "lib": ["ES2022", "DOM", "dom.iterable"]
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "tests/**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "__tests__/**/*.test.ts"]
 }
