@@ -1,18 +1,15 @@
 # treedata
-
-`treedata` is a fast and light-weight node.js package for creating and manipulating hierarchal data in a tree-like structure.
+`treedata` is a tiny and fast Node.js package for creating and manipulating hierarchal data; I.e. data shaped like a tree 🌲.
 
 ## Installation
 ToDo
 
 ## Example usage
-
-In `treedata`, a _tree_ can be any JavaScript object that contains a `children` property, such that `children` is an array of 0 or more _trees_. 
+A _tree_ can be any JavaScript object that contains an array of children, where each child is another JavaScript object that matches the structure of its parent.
 
 For example, here's a tree with three nodes 👇
 
 ```js
-// Make a tree with three nodes like
 //   A
 //  / \
 // B   C
@@ -53,11 +50,25 @@ getSubtreeByValue(myTree, { prop: "id", value: "B" })
 ```
 
 ## Notes
-- By default, `treedata` functions never modify their inputs by reference.
+- By default, `treedata` functions never modify their inputs by reference
 - `treedata` expects every node in a tree to include a `children[]` property
+- `treedata` always scans in depth-first search, pre-order
+
+## API
+- **`contains(tree, options)`**
+- **`getDepth(tree)`**
+- **`getNodes(tree, options)`**
+- **`getParent(tree, options)`**
+- **`getSignature(tree, options)`**
+- **`getSize(tree, options)`**
+- **`getSubtree(tree, options)`**
+- **`getValues(tree, options)`**
+- **`insert(baseTree, insertTree, options)`**
+- **`prune(tree, options)`**
+- **`remove(tree, options)`**
 
 ## Examples
-A common source of tree-shaped data are comments to a post / article / video / etc. Each comment thread can be represented by a root comment that can have 0 or more replies (also comments), each of which may have their own replies, and so on.
+Suppose you have data for a comment thread on a YouTube video..
 
 ```js
 const commentThread = {
