@@ -8,6 +8,7 @@ export * from "./getSubtree.js"
 export * from "./getValues.js"
 export * from "./insert.js"
 export * from "./prune.js"
+export * from "./reduce.js"
 export * from "./remove.js"
 export * from "./types.js"
 
@@ -22,5 +23,3 @@ export * from "./types.js"
 // getDescendants
 
 // deleteSubtree
-
-// applyReducer
