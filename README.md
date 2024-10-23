@@ -27,25 +27,25 @@ const myTree = {
 
 **count the number of nodes in the tree**
 ```js
-import { getNodeCount } from "treedata"
+import { getSize } from "treedata"
 
-getNodeCount(myTree) 
+getSize(myTree) 
 // Returns: 3
 ```
 
-**check if the tree contains at least one node with `id` equal to Q**
+**check if the tree contains at least one node with `id` equal to "Q"**
 ```js
-import { treeContainsNodeWithValue } from "treedata"
+import { contains } from "treedata"
 
-treeContainsNodeWithValue(myTree, { prop: "id", value: "Q" }) 
+contains(myTree, { prop: "id", value: "Q" }) 
 // Returns: false
 ```
 
-**extract the subtree starting at the node with `id` equal to `"B"`**
+**extract the subtree starting at the node with `id` equal to "B"**
 ```js
-import { getSubtreeByValue } from "treedata"
+import { getSubtree } from "treedata"
 
-getSubtreeByValue(myTree, { prop: "id", value: "B" }) 
+getSubtree(myTree, { testFn: (x) => x.id === "B" }) 
 // Returns: { id: "B", children: [] }
 ```
 
@@ -53,6 +53,8 @@ getSubtreeByValue(myTree, { prop: "id", value: "B" })
 - By default, `treedata` functions never modify their inputs by reference
 - `treedata` expects every node in a tree to include a `children[]` property
 - `treedata` always scans in depth-first search, pre-order
+- `treedata` expects every tree to have exactly one root node (at depth 0)
+- The parent of a root node is `null`
 
 ## API
 - **`contains(tree, options)`**
