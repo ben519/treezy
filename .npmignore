@@ -1,5 +1,6 @@
 src/
 node_modules/
+__tests__/
 
 .env
 .DS_Store
@@ -9,3 +10,5 @@ tsup.config.ts
 
 *.d.ts
 *.log
+
+tinker.js

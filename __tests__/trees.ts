@@ -91,3 +91,34 @@ export const tree8 = {
     { id: 3, color: "red", children: [] },
   ],
 }
+
+export const commentThread = {
+  id: 234424,
+  userId: 489294,
+  comment: "I like dogs",
+  likes: 2,
+  children: [
+    {
+      id: 248210,
+      userId: 403928,
+      comment: "So do I!",
+      likes: 1,
+      children: [],
+    },
+    {
+      id: 211104,
+      userId: 407718,
+      comment: "Meh, cats are better",
+      likes: 0,
+      children: [
+        {
+          id: 248210,
+          userId: 489294,
+          comment: "Kick rocks, dummy head",
+          likes: 3,
+          children: [],
+        },
+      ],
+    }
+  ],
+}

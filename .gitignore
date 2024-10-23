@@ -4,3 +4,4 @@ node_modules/
 .DS_Store
 *.d.ts
 *.log
+tinker.js
