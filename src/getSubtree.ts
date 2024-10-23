@@ -17,7 +17,7 @@ interface Options {
  * @param options 
  * @returns 
  */
-export function getSubtreeByCondition(tree: Tree, options: Options): Tree | null {
+export function getSubtree(tree: Tree, options: Options): Tree | null {
 
   // Check options
   if (!Object.hasOwn(options, "testFn")) {
@@ -34,7 +34,7 @@ export function getSubtreeByCondition(tree: Tree, options: Options): Tree | null
 
   // Recursively check this node's children
   for (const child of tree.children) {
-    const subtree = getSubtreeByCondition(child, options)
+    const subtree = getSubtree(child, options)
     if (subtree) return subtree
   }
 

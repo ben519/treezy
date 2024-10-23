@@ -16,7 +16,7 @@ interface Options {
  * @param options 
  * @returns 
  */
-export function pruneTree(tree: Tree, options: Options): Tree | null {
+export function prune(tree: Tree, options: Options): Tree | null {
 
   // Check options
   if (!Object.hasOwn(options, "testFn")) {
@@ -36,7 +36,7 @@ export function pruneTree(tree: Tree, options: Options): Tree | null {
 
   // Prune each child of this node
   for (const child of tree.children) {
-    const newChild = pruneTree(child, options)
+    const newChild = prune(child, options)
 
     // If the returned value is not null, add it to newChildren
     if (newChild) {

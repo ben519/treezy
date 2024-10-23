@@ -1,17 +1,17 @@
-import { flattenTree } from "../src/flattenTree"
+import { getNodes } from "../src/getNodes"
 import { tree1, tree2, tree3, tree4, tree5, tree6 } from "./trees"
 
-test("Confirm flattenTree() is correct", () => {
-  expect(flattenTree(tree1)).toStrictEqual([{ id: 1 }])
-  expect(flattenTree(tree2)).toStrictEqual(
+test("Confirm getNodes() is correct", () => {
+  expect(getNodes(tree1)).toStrictEqual([{ id: 1 }])
+  expect(getNodes(tree2)).toStrictEqual(
     [{ id: 1 }, { id: 2 }, { id: 3 }]
   )
 
-  expect(flattenTree(tree3)).toStrictEqual(
+  expect(getNodes(tree3)).toStrictEqual(
     [{ id: 1 }, { id: 3 }]
   )
 
-  expect(flattenTree(tree4)).toStrictEqual(
+  expect(getNodes(tree4)).toStrictEqual(
     [
       { id: 1 },
       { id: 2 },
@@ -20,7 +20,7 @@ test("Confirm flattenTree() is correct", () => {
     ]
   )
 
-  expect(flattenTree(tree5)).toStrictEqual(
+  expect(getNodes(tree5)).toStrictEqual(
     [
       { id: 1 },
       { id: 2 },
@@ -35,7 +35,7 @@ test("Confirm flattenTree() is correct", () => {
     ]
   )
 
-  expect(flattenTree(tree6)).toStrictEqual(
+  expect(getNodes(tree6)).toStrictEqual(
     [
       { id: 1 },
       { id: 2 },

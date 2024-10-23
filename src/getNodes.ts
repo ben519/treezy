@@ -19,8 +19,8 @@ type TreeLike = {
  * @param options 
  * @returns Array of nodes
  */
-export function flattenTree(tree: Tree, options?: Options): Object[] {
-  return flattenTreeHelper(tree, options ?? {})
+export function getNodes(tree: Tree, options?: Options): Object[] {
+  return getNodesHelper(tree, options ?? {})
 }
 
 /**
@@ -31,7 +31,7 @@ export function flattenTree(tree: Tree, options?: Options): Object[] {
  * @param parent 
  * @returns 
  */
-function flattenTreeHelper(
+function getNodesHelper(
   tree: Tree | TreeLike,
   options: Options,
   depth: number = 0,
@@ -66,7 +66,7 @@ function flattenTreeHelper(
   } else {
     return [
       currentNode,
-      ...tree.children.map((x) => flattenTreeHelper(x, options, depth + 1, currentNode)).flat(1),
+      ...tree.children.map((x) => getNodesHelper(x, options, depth + 1, currentNode)).flat(1),
     ]
   }
 }

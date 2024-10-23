@@ -14,7 +14,7 @@ interface Options {
  * @param options 
  * @returns 
  */
-export function getTreeSignature(tree: Tree, options: Options): string {
+export function getSignature(tree: Tree, options: Options): string {
 
   const { idProp, openChar = "[", closeChar = "]", separatorChar = "," } = options
 
@@ -28,7 +28,7 @@ export function getTreeSignature(tree: Tree, options: Options): string {
     signature += openChar
 
     for (const child of tree.children) {
-      signature += getTreeSignature(child, options) + separatorChar
+      signature += getSignature(child, options) + separatorChar
     }
 
     signature = signature.replace(/,$/, closeChar)

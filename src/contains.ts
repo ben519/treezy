@@ -6,14 +6,14 @@ import { Node, Tree } from "./types.js"
  * @param testFn A function that receives a node and returns true / false
  * @returns true / false
  */
-export function treeContainsNodeWithCondition(tree: Tree, testFn: (node: Node) => boolean): boolean {
+export function contains(tree: Tree, testFn: (node: Node) => boolean): boolean {
 
   // If this node passes testFn, return true
   if (testFn(tree)) return true
 
   // Recursively check this node's children
   for (const child of tree.children) {
-    if (treeContainsNodeWithCondition(child, testFn)) {
+    if (contains(child, testFn)) {
       return true
     }
   }

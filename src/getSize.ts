@@ -12,13 +12,13 @@ interface Options {
  * @param options
  * @returns The total number of nodes in the tree
  */
-export function getNodeCount(tree: Tree, options?: Options): number {
+export function getSize(tree: Tree, options?: Options): number {
 
   const addend = options?.testFn
     ? (options.testFn(tree) ? 1 : 0)
     : 1
 
   // Return addend + the collective size of each of this tree's children
-  const counts = tree.children.map((x) => getNodeCount(x, options))
+  const counts = tree.children.map((x) => getSize(x, options))
   return counts.reduce((a, b) => a + b, addend)
 }

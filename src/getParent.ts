@@ -5,7 +5,7 @@ interface Options {
   copy?: boolean,
 }
 
-export function getParentOfNode(tree: Tree, options: Options): Node | null {
+export function getParent(tree: Tree, options: Options): Node | null {
   // Find the given id in tree and return the entire subtree starting at parent
   // If id is at the root, return null
   // If id is not found, throw an error
@@ -24,7 +24,7 @@ export function getParentOfNode(tree: Tree, options: Options): Node | null {
 
   // Recursively check each child subtree
   for (const child of tree.children) {
-    const parent = getParentOfNode(child, options)
+    const parent = getParent(child, options)
     if (parent) return parent
   }
 

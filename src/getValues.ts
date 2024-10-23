@@ -11,7 +11,7 @@ interface Options {
  * @param tree 
  * @param options 
  */
-export function getValuesInTree(tree: Tree, options: Options): any[] {
+export function getValues(tree: Tree, options: Options): any[] {
   return getValuesHelper(tree, options, [])
 }
 

@@ -10,7 +10,7 @@ interface Options {
 // ToDo: convert this to "deleteNodeWithValue" with options on how to merge
 // the orphan subtree
 
-export function deleteSubtreeAtNodeWithValue(tree: Tree, options: Options): Tree {
+export function remove(tree: Tree, options: Options): Tree {
   // Delete the subtree starting at id
   // Returns an object with { newtree, subtree } where
   // subtree is the subtree starting at id
@@ -36,7 +36,7 @@ export function deleteSubtreeAtNodeWithValue(tree: Tree, options: Options): Tree
       } else {
         // If subtree has not already been found, delete id from the current child
         // If the returned subtree is truthy, this child is the node we're looking for
-        let temp = deleteSubtreeAtNodeWithValue(post, options)
+        let temp = remove(post, options)
         if (temp.newtree) newChildren.push(temp.newtree)
         if (temp.subtree) subtree = temp.subtree
       }

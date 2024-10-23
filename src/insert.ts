@@ -15,7 +15,7 @@ interface Options {
  * @param options 
  * @returns resulting tree
  */
-export function insertTreeAtNodeWithValue(baseTree: Tree, insertTree: Tree, options: Options): Tree {
+export function insert(baseTree: Tree, insertTree: Tree, options: Options): Tree {
 
   // Check options
   if (!Object.hasOwn(options, "prop")) {
@@ -23,7 +23,7 @@ export function insertTreeAtNodeWithValue(baseTree: Tree, insertTree: Tree, opti
   }
 
   // Run the helper function
-  const newTree = insertTreeHelper(baseTree, insertTree, options)
+  const newTree = insertHelper(baseTree, insertTree, options)
 
   // If id wasn't found in tree, throw an error
   if (newTree === null) {
@@ -36,7 +36,7 @@ export function insertTreeAtNodeWithValue(baseTree: Tree, insertTree: Tree, opti
   return newTree
 }
 
-function insertTreeHelper(baseTree: Tree, insertTree: Tree, options: Options): Tree | null {
+function insertHelper(baseTree: Tree, insertTree: Tree, options: Options): Tree | null {
 
   // Destructure options
   const { prop, value, strict = true, direction = "below", copy = true } = options
@@ -59,8 +59,8 @@ function insertTreeHelper(baseTree: Tree, insertTree: Tree, options: Options): T
     // Check each child of this node for the matching value
     for (const [idx, child] of baseTree.children.entries()) {
 
-      // Recursively call insertTreeHelper() on this child node
-      const newChild = insertTreeHelper(child, insertTree, options)
+      // Recursively call insertHelper() on this child node
+      const newChild = insertHelper(child, insertTree, options)
 
       if (newChild !== null) {
         // Found the subtree with the matching node
@@ -107,8 +107,8 @@ function insertTreeHelper(baseTree: Tree, insertTree: Tree, options: Options): T
 
       } else {
 
-        // Recursively call insertTreeHelper() on this child node
-        const newChild = insertTreeHelper(child, insertTree, options)
+        // Recursively call insertHelper() on this child node
+        const newChild = insertHelper(child, insertTree, options)
 
         if (newChild !== null) {
           // Found the subtree with the matching node
@@ -155,8 +155,8 @@ function insertTreeHelper(baseTree: Tree, insertTree: Tree, options: Options): T
 
       } else {
 
-        // Recursively call insertTreeHelper() on this child node
-        const newChild = insertTreeHelper(child, insertTree, options)
+        // Recursively call insertHelper() on this child node
+        const newChild = insertHelper(child, insertTree, options)
 
         if (newChild !== null) {
           // Found the subtree with the matching node
