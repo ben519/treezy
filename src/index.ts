@@ -1,24 +1,28 @@
-export * from "./deleteSubtreeAtNodeWithValue"
-export * from "./flattenTree"
-export * from "./getSubtreeByCondition"
-export * from "./getSubtreeByValue"
-export * from "./getTreeDepth"
-export * from "./getTreeSize"
-export * from "./insertTreeAtNodeWithValue"
-export * from "./treeContainsNodeWithCondition"
-export * from "./treeContainsNodeWithValue"
-export * from "./types"
+export * from "./deleteSubtreeAtNodeWithValue.js"
+export * from "./flattenTree.js"
+export * from "./getNodeCount.js"
+export * from "./getParentOfNode.js"
+export * from "./getSubtreeByCondition.js"
+export * from "./getSubtreeByValue.js"
+export * from "./getTreeDepth.js"
+export * from "./getTreeSignature.js"
+export * from "./getValuesInTree.js"
+export * from "./insertTreeAtNodeWithValue.js"
+export * from "./pruneTree.js"
+export * from "./treeContainsNodeWithCondition.js"
+export * from "./treeContainsNodeWithValue.js"
+export * from "./types.js"
 
-// getIdsInTree
-// countNodesInTree
 // updateNodeInTree
 // updateTree
 // updateSubtree
-// pruneTree
 // modifyTreeNodes
-// getTreeSignature
+
+// insertTitlePaths
+
 // getAncestors
 // getDescendants
-// getParent
+
+// deleteSubtree
+
 // applyReducer
-// insertTitlePaths

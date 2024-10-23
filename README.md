@@ -30,9 +30,9 @@ const myTree = {
 
 **count the number of nodes in the tree**
 ```js
-import { getTreeSize } from "treedata"
+import { getNodeCount } from "treedata"
 
-getTreeSize(myTree) 
+getNodeCount(myTree) 
 // Returns: 3
 ```
 
