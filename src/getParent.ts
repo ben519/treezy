@@ -5,11 +5,24 @@ interface Options {
   copy?: boolean,
 }
 
-export function getParent(tree: Tree, options: Options): Node | null {
-  // Find the given id in tree and return the entire subtree starting at parent
-  // If id is at the root, return null
-  // If id is not found, throw an error
+// Find the given id in tree and return the entire subtree starting at parent
+// If id is at the root, return null
+// If id is not found, throw an error
 
+/**
+ * 
+ * @param tree 
+ * @param options 
+ * @returns 
+ */
+export function getParent(tree: Tree, options: Options): Node | null {
+
+  // Check options
+  if (!Object.hasOwn(options, "testFn")) {
+    throw new Error("'testFn' must be given")
+  }
+
+  // Destructure options
   const { testFn, copy = true } = options
 
   // If this is the matching node, return null

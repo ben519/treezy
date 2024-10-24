@@ -1,3 +1,4 @@
+export * from "./apply.js"
 export * from "./contains.js"
 export * from "./getDepth.js"
 export * from "./getNodes.js"
@@ -12,14 +13,6 @@ export * from "./reduce.js"
 export * from "./remove.js"
 export * from "./types.js"
 
-// updateNodeInTree
-// updateTree
-// updateSubtree
-// modifyTreeNodes
-
-// insertTitlePaths
-
+// deleteSubtree (remove)
 // getAncestors
 // getDescendants
-
-// deleteSubtree

@@ -23,14 +23,6 @@ export function getNodes(tree: Tree, options?: Options): Object[] {
   return getNodesHelper(tree, options ?? {})
 }
 
-/**
- * 
- * @param tree 
- * @param options 
- * @param depth 
- * @param parent 
- * @returns 
- */
 function getNodesHelper(
   tree: Tree | TreeLike,
   options: Options,

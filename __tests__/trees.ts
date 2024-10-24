@@ -34,7 +34,12 @@ export const tree5 = {
         { id: 7, children: [] },
       ],
     },
-    { id: 3, children: [{ id: 8, children: [] }] },
+    {
+      id: 3,
+      children: [
+        { id: 8, children: [] }
+      ]
+    },
     {
       id: 4,
       children: [
