@@ -42,5 +42,5 @@ export function getParent(tree: Tree, options: Options): Node | null {
   }
 
   // If a matching node could not be found, throw an error
-  throw new Error("node with condition could not be found")
+  throw new Error("Node with condition could not be found")
 }

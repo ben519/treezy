@@ -13,5 +13,5 @@ test("Confirm getParent() returns correct value for parent of non-root node", ()
 
 test("Confirm getParent() throws error when node with condition doesn't exist", () => {
   expect(() => getParent(tree1, { testFn: (x) => x.id === 999 }))
-    .toThrow("node with condition could not be found")
+    .toThrow("Node with condition could not be found")
 })

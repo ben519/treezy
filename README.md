@@ -57,18 +57,21 @@ getSubtree(myTree, { testFn: (x) => x.id === "B" })
 - The parent of a root node is `null`
 
 ## API
+- **`apply(tree, options)`**
+- **`bifurcate(tree, options)`**
 - **`contains(tree, options)`**
+- **`getAncestors(tree, options)`**
 - **`getDepth(tree)`**
-- **`getNodes(tree, options)`**
+- **`getDescendants(tree, options)`**
+- **`getNodes(tree, options?)`**
 - **`getParent(tree, options)`**
 - **`getSignature(tree, options)`**
-- **`getSize(tree, options)`**
+- **`getSize(tree, options?)`**
 - **`getSubtree(tree, options)`**
 - **`getValues(tree, options)`**
 - **`insert(baseTree, insertTree, options)`**
 - **`prune(tree, options)`**
 - **`reduce(tree, options)`**
-- **`remove(tree, options)`**
 
 ## Examples
 Suppose you have data for a comment thread on a YouTube video..

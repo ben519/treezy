@@ -1,4 +1,4 @@
-import { Tree } from "./types.js";
+import { Node, Tree } from "./types.js";
 
 interface Options {
   copy?: boolean,
