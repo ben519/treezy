@@ -61,7 +61,6 @@ getSubtree(myTree, { testFn: (x) => x.id === "B" })
 - **`bifurcate(tree, options)`**
 - **`contains(tree, options)`**
 - **`getDepth(tree)`**
-- **`getNodes(tree, options?)`**
 - **`getParent(tree, options)`**
 - **`getSignature(tree, options)`**
 - **`getSize(tree, options?)`**

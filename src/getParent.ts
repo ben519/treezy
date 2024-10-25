@@ -1,10 +1,53 @@
 import { Node, Tree } from "./types.js";
 
+/**
+ * Options for finding a parent node in a tree structure.
+ */
 interface Options {
-  testFn: (node: Node, parent?: Node | null, depth?: number | null) => boolean;
-  copy?: boolean,
+  /**
+   * Function to test each node in the tree.
+   * @param node - The current node being tested
+   * @param parent - The parent node of the current node, if any
+   * @param depth - The depth of the current node in the tree (0-based)
+   * @returns boolean indicating whether this is the target node
+   */
+  testFn: (node: Node, parent?: Node | null, depth?: number) => boolean;
+
+  /**
+   * Whether to create a deep copy of the tree before traversing.
+   * @default true
+   */
+  copy?: boolean;
 }
 
+
+/**
+ * Finds the parent node of a node matching the given test condition in a tree structure.
+ * 
+ * @param tree - The root node of the tree to search
+ * @param options - Configuration options for the search
+ * @param options.testFn - Function to identify the target node
+ * @param options.copy - Whether to create a deep copy of the tree before searching (defaults to true)
+ * 
+ * @returns The parent node of the matching node, or null if the matching node is the root
+ * 
+ * @throws {Error} If no testFn is provided in options
+ * @throws {Error} If no node matching the test condition is found
+ * 
+ * @example
+ * const tree = {
+ *   value: 'root',
+ *   children: [{
+ *     value: 'child',
+ *     children: []
+ *   }]
+ * };
+ * 
+ * // Find parent of node with value 'child'
+ * const parent = getParent(tree, {
+ *   testFn: (node) => node.value === 'child'
+ * });
+ */
 export function getParent(tree: Tree, options: Options): Node | null {
 
   // Check options
@@ -33,6 +76,22 @@ export function getParent(tree: Tree, options: Options): Node | null {
 }
 
 
+/**
+ * Helper function that recursively traverses the tree to find a parent node.
+ * 
+ * @param tree - Current node being examined
+ * @param options - Search configuration options
+ * @param parent - Parent of the current node
+ * @param depth - Current depth in the tree (0-based)
+ * 
+ * @returns 
+ * - The parent node if found in this subtree
+ * - null if the matching node is found (indicating it's the target node)
+ * - undefined if no matching node is found in this subtree
+ * 
+ * @internal
+ * This is an internal helper function and should not be called directly.
+ */
 function getParentHelper(
   tree: Tree,
   options: Options,

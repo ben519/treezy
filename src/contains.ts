@@ -13,7 +13,7 @@ interface Options {
    * @returns True if the node passes the test, false otherwise
    * @default () => true
    */
-  testFn: (node: Node, parent?: Node | null, depth?: number | null) => boolean
+  testFn: (node: Node, parent?: Node | null, depth?: number) => boolean
 }
 
 /**

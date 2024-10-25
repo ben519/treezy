@@ -1,12 +1,91 @@
-import { Node, Tree } from "./types.js"
+import { Node, Tree } from "./types.js";
 
+/**
+* Configuration options for inserting a subtree
+*/
 interface Options {
-  subtree: Tree,
-  testFn: (node: Node, parent?: Node | null, depth?: number | null) => boolean,
-  direction?: "after" | "before" | "below",
-  copy?: boolean,
+  /**
+   * The tree structure to insert
+   */
+  subtree: Tree;
+
+  /**
+   * Function to identify the target node
+   * @param node - The current node being tested
+   * @param parent - The parent node of the current node, if any
+   * @param depth - The depth of the current node in the tree (0-based)
+   * @returns boolean indicating whether this is the target node
+   */
+  testFn: (node: Node, parent?: Node | null, depth?: number) => boolean;
+
+  /**
+   * Where to insert the subtree relative to the matching node
+   * @default "below"
+   */
+  direction?: "after" | "before" | "below";
+
+  /**
+   * Whether to create deep copies of both trees before modifying.
+   * Set to false to modify the original trees.
+   * @default true
+   */
+  copy?: boolean;
 }
 
+
+/**
+* Inserts a subtree into a tree at a position relative to a node matching the given test condition.
+* 
+* @param tree - The root node of the tree to modify
+* @param options - Configuration options for inserting the subtree
+* @param options.subtree - The tree structure to insert
+* @param options.testFn - Function to identify the target node
+* @param options.direction - Where to insert relative to the matching node:
+*   - "below": As last child of the matching node (default)
+*   - "before": As previous sibling of the matching node
+*   - "after": As next sibling of the matching node
+* @param options.copy - Whether to create deep copies of both trees before modifying (defaults to true)
+* 
+* @returns The modified tree structure
+* 
+* @throws {Error} If subtree or testFn is not provided in options
+* @throws {Error} If attempting to insert before/after the root node
+* 
+* @example
+* const tree = {
+*   id: 1,
+*   children: [{
+*     id: 2,
+*     children: []
+*   }]
+* };
+* 
+* const newSubtree = {
+*   id: 3,
+*   children: []
+* };
+* 
+* // Insert as child of node with id 2
+* const result1 = insert(tree, {
+*   subtree: newSubtree,
+*   testFn: node => node.id === 2,
+*   direction: "below"
+* });
+* 
+* // Insert before node with id 2
+* const result2 = insert(tree, {
+*   subtree: newSubtree,
+*   testFn: node => node.id === 2,
+*   direction: "before"
+* });
+* 
+* // Insert without copying (modifies original tree)
+* const result3 = insert(tree, {
+*   subtree: newSubtree,
+*   testFn: node => node.id === 2,
+*   copy: false
+* });
+*/
 export function insert(tree: Tree, options: Options): Tree {
 
   // Check options
@@ -29,6 +108,20 @@ export function insert(tree: Tree, options: Options): Tree {
   return result ?? (copy ? structuredClone(tree) : tree)
 }
 
+
+/**
+* Helper function that recursively traverses the tree to find the insertion point
+* and perform the insertion.
+* 
+* @param tree - Current node being examined
+* @param options - Insertion configuration options
+* @param parent - Parent of the current node
+* @param depth - Current depth in the tree (0-based)
+* @returns The modified tree if insertion occurred in this subtree, null otherwise
+* 
+* @internal
+* This is an internal helper function and should not be called directly.
+*/
 function insertHelper(
   tree: Tree,
   options: Options,

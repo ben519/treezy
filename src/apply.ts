@@ -10,7 +10,7 @@ interface Options {
    * @param parent - The parent of the current node (if any)
    * @param depth - The depth of the current node in the tree
    */
-  applyFn: (node: Node, parent?: Node | null, depth?: number | null) => any;
+  applyFn: (node: Node, parent?: Node | null, depth?: number) => any;
 
   /**
    * Function to test each node during traversal.
@@ -20,7 +20,7 @@ interface Options {
    * @returns True if the node should be processed, false otherwise
    * @default () => true
    */
-  testFn?: (node: Node, parent?: Node | null, depth?: number | null) => boolean;
+  testFn?: (node: Node, parent?: Node | null, depth?: number) => boolean;
 
   /**
    * Determines which nodes to apply the function to relative to matching nodes.
