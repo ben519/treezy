@@ -1,21 +1,10 @@
 import { Node, Tree } from "./types.js";
 
 interface Options {
-  testFn: (node: Node) => boolean,
+  testFn: (node: Node, parent?: Node | null, depth?: number | null) => boolean,
   copy?: boolean,
 }
 
-// Return a pruned copy of the given tree by testing each node with the provided function
-// If a node fails the test (i.e. the test is true), it and all of its children will be removed
-// If the root is removed, return null
-
-
-/**
- * 
- * @param tree 
- * @param options 
- * @returns 
- */
 export function prune(tree: Tree, options: Options): Tree | null {
 
   // Check options
@@ -24,30 +13,39 @@ export function prune(tree: Tree, options: Options): Tree | null {
   }
 
   // Destructure options
-  const { testFn, copy = true } = options
+  const { copy = true } = options
+
+  // Call the helper function
+  const result = pruneHelper(
+    copy ? structuredClone(tree) : tree,
+    options ?? {},
+    null,
+    0
+  )
+
+  // Return
+  return result
+}
+
+function pruneHelper(tree: Tree, options: Options, parent: Node | null, depth: number): Tree | null {
+
+  // Destructure options
+  const { testFn } = options
 
   // Check if this node passes testFn
-  if (testFn(tree)) {
+  if (testFn(tree, parent, depth)) {
     return null
   }
 
-  // Build an array to store this node's children after pruning
-  const newChildren = []
-
   // Prune each child of this node
-  for (const child of tree.children) {
-    const newChild = prune(child, options)
+  for (const [idx, child] of tree.children.reverse().entries()) {
+    const newChild = pruneHelper(child, options, tree, depth + 1)
 
-    // If the returned value is not null, add it to newChildren
-    if (newChild) {
-      newChildren.push(newChild)
+    // If the returned value is null, delete the child from tree.children
+    if (newChild === null) {
+      tree.children.splice(idx, 1)
     }
   }
 
-  if (copy) {
-    return { ...tree, children: newChildren }
-  } else {
-    tree.children = newChildren
-    return tree
-  }
+  return tree
 }

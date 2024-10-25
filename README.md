@@ -67,7 +67,7 @@ getSubtree(myTree, { testFn: (x) => x.id === "B" })
 - **`getSize(tree, options?)`**
 - **`getSubtree(tree, options)`**
 - **`getValues(tree, options)`**
-- **`insert(baseTree, insertTree, options)`**
+- **`insert(tree, options)`**
 - **`prune(tree, options)`**
 - **`reduce(tree, options)`**
 

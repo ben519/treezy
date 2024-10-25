@@ -1,22 +1,10 @@
 import { Node, Tree } from "./types.js"
 
 interface Options {
-  testFn: (node: Node) => boolean,
+  testFn: (node: Node, parent?: Node | null, depth?: number | null) => boolean,
   copy?: boolean,
 }
 
-/**
- *  Given a tree, scan it using Depth First Search Pre-order
- *  and return the subtree starting at the first node that matches
- *  some condition. If no nodes match the condition, return null.
- * 
- *  If copy is true, return a copy of the subtree; Otherwise return 
- *  the subtree in-place.
- * 
- * @param tree 
- * @param options 
- * @returns 
- */
 export function getSubtree(tree: Tree, options: Options): Tree | null {
 
   // Check options
@@ -25,16 +13,39 @@ export function getSubtree(tree: Tree, options: Options): Tree | null {
   }
 
   // Destructure options
-  const { testFn, copy = true } = options
+  const { copy = true } = options
+
+  // Call the helper function
+  const result = getSubtreeHelper(
+    copy ? structuredClone(tree) : tree,
+    options ?? {},
+    null,
+    0
+  )
+
+  // Return
+  return result
+}
+
+
+function getSubtreeHelper(
+  tree: Tree,
+  options: Options,
+  parent: Node | null,
+  depth: number
+): Tree | null {
+
+  // Destructure options
+  const { testFn } = options
 
   // Check if this node passes testFn
-  if (testFn(tree)) {
-    return copy ? structuredClone(tree) : tree
+  if (testFn(tree, parent, depth)) {
+    return tree
   }
 
   // Recursively check this node's children
   for (const child of tree.children) {
-    const subtree = getSubtree(child, options)
+    const subtree = getSubtreeHelper(child, options, tree, depth + 1)
     if (subtree) return subtree
   }
 

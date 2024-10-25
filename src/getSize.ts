@@ -1,24 +1,27 @@
 import { Node, Tree } from "./types.js"
 
 interface Options {
-  testFn?: (node: Node) => boolean,
+  testFn?: (node: Node, parent?: Node | null, depth?: number | null) => boolean
 }
 
-/**
- * Get the number of nodes in a tree. 
- * Optionally, only count nodes matching a condition
- * 
- * @param tree A tree object
- * @param options
- * @returns The total number of nodes in the tree
- */
 export function getSize(tree: Tree, options?: Options): number {
+  return getSizeHelper(tree, null, 0, options ?? {})
+}
 
-  const addend = options?.testFn
-    ? (options.testFn(tree) ? 1 : 0)
-    : 1
+function getSizeHelper(
+  tree: Tree,
+  parent: Node | null,
+  depth: number,
+  options: Options,
+): number {
+
+  // Destructure
+  const { testFn = () => true } = options ?? {}
+
+  // Count this node?
+  const addend = testFn(tree, parent, depth) ? 1 : 0
 
   // Return addend + the collective size of each of this tree's children
-  const counts = tree.children.map((x) => getSize(x, options))
+  const counts = tree.children.map((x) => getSizeHelper(x, tree, depth + 1, options))
   return counts.reduce((a, b) => a + b, addend)
 }

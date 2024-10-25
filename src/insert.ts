@@ -1,78 +1,63 @@
-import { Tree } from "./types.js"
+import { Node, Tree } from "./types.js"
 
 interface Options {
-  prop: string,
-  value: any,
-  strict?: boolean,
+  subtree: Tree,
+  testFn: (node: Node, parent?: Node | null, depth?: number | null) => boolean,
   direction?: "after" | "before" | "below",
   copy?: boolean,
 }
 
-/**
- * Insert insertTree into baseTree at some specified node
- * @param baseTree 
- * @param insertTree 
- * @param options 
- * @returns resulting tree
- */
-export function insert(baseTree: Tree, insertTree: Tree, options: Options): Tree {
+export function insert(tree: Tree, options: Options): Tree {
 
   // Check options
-  if (!Object.hasOwn(options, "prop")) {
-    throw new Error("options is missing the 'prop' property")
+  if (!Object.hasOwn(options, "subtree")) {
+    throw new Error("options is missing the 'subtree' property")
   }
-
-  // Run the helper function
-  const newTree = insertHelper(baseTree, insertTree, options)
-
-  // If id wasn't found in tree, throw an error
-  if (newTree === null) {
-    throw new Error(
-      `Could not insert insertTree into baseTree because baseTree does not contain\
-       a node with property ${ options.prop } whoes value is ${ options.value }`
-    )
+  if (!Object.hasOwn(options, "testFn")) {
+    throw new Error("options is missing the 'testFn' property")
   }
-
-  return newTree
-}
-
-function insertHelper(baseTree: Tree, insertTree: Tree, options: Options): Tree | null {
 
   // Destructure options
-  const { prop, value, strict = true, direction = "below", copy = true } = options
+  const { copy = true, subtree } = options ?? {}
+
+  // Run the helper function
+  const result = copy
+    ? insertHelper(structuredClone(tree), { ...options, subtree: structuredClone(subtree) }, null, 0)
+    : insertHelper(tree, options, null, 0)
+
+  // Return
+  return result ?? (copy ? structuredClone(tree) : tree)
+}
+
+function insertHelper(
+  tree: Tree,
+  options: Options,
+  parent: Node | null,
+  depth: number
+): Tree | null {
+
+  // Destructure options
+  const { subtree, testFn, direction = "below" } = options
 
   if (direction === "below") {
 
-    // If this node has the matching value...
-    if (
-      (strict && baseTree[prop as keyof Tree] === value) ||
-      (!strict && baseTree[prop as keyof Tree] == value)
-    ) {
-      if (copy) {
-        return { ...baseTree, children: [...baseTree.children, insertTree] }
-      } else {
-        baseTree.children.push(insertTree)
-        return baseTree
-      }
+    // If this node is a match, append subtree to this node's children and return
+    if (testFn(tree, parent, depth)) {
+      tree.children.push(subtree)
+      return tree
     }
 
     // Check each child of this node for the matching value
-    for (const [idx, child] of baseTree.children.entries()) {
+    for (const [idx, child] of tree.children.entries()) {
 
       // Recursively call insertHelper() on this child node
-      const newChild = insertHelper(child, insertTree, options)
+      const newChild = insertHelper(child, options, tree, depth + 1)
 
       if (newChild !== null) {
         // Found the subtree with the matching node
 
-        if (copy) {
-          const newChildren = [...baseTree.children]
-          newChildren.splice(idx, 1, newChild)
-          return { ...baseTree, children: newChildren }
-        } else {
-          baseTree.children.splice(idx, 1, newChild)
-          return baseTree
-        }
+        tree.children.splice(idx, 1, newChild)
+        return tree
 
       }
     }
@@ -81,46 +66,26 @@ function insertHelper(baseTree: Tree, insertTree: Tree, options: Options): Tree 
   else if (direction === "before") {
 
     // If this node has the matching value...
-    if (
-      (strict && baseTree[prop as keyof Tree] === value) ||
-      (!strict && baseTree[prop as keyof Tree] == value)
-    ) {
-      throw new Error("Cannot insert insertTree before the root of baseTree")
+    if (testFn(tree, parent, depth)) {
+      throw new Error("Cannot insert subtree before the root of tree")
     }
 
     // Check each child of this node for the matching value
-    for (const [idx, child] of baseTree.children.entries()) {
-      if (
-        (strict && child[prop as keyof Tree] === value) ||
-        (!strict && child[prop as keyof Tree] == value)
-      ) {
+    for (const [idx, child] of tree.children.entries()) {
+      if (testFn(child, tree, depth + 1)) {
         // Found the matching node
 
-        if (copy) {
-          const newChildren = [...baseTree.children]
-          newChildren.splice(idx, 0, insertTree)
-          return { ...baseTree, children: newChildren }
-        } else {
-          baseTree.children.splice(idx, 0, insertTree)
-          return baseTree
-        }
+        tree.children.splice(idx, 0, subtree)
+        return tree
 
       } else {
 
         // Recursively call insertHelper() on this child node
-        const newChild = insertHelper(child, insertTree, options)
+        const newChild = insertHelper(child, options, tree, depth + 1)
 
         if (newChild !== null) {
           // Found the subtree with the matching node
-
-          if (copy) {
-            const newChildren = [...baseTree.children]
-            newChildren.splice(idx, 1, newChild)
-            return { ...baseTree, children: newChildren }
-          } else {
-            return baseTree
-          }
-
+          return tree
         }
       }
     }
@@ -129,46 +94,27 @@ function insertHelper(baseTree: Tree, insertTree: Tree, options: Options): Tree 
   else if (direction === "after") {
 
     // If this node has the matching value...
-    if (
-      (strict && baseTree[prop as keyof Tree] === value) ||
-      (!strict && baseTree[prop as keyof Tree] == value)
-    ) {
-      throw new Error("Cannot insert insertTree after the root of baseTree")
+    if (testFn(tree, parent, depth)) {
+      throw new Error("Cannot insert subtree after the root of tree")
     }
 
-    for (const [idx, child] of baseTree.children.entries()) {
+    for (const [idx, child] of tree.children.entries()) {
 
-      if (
-        (strict && child[prop as keyof Tree] === value) ||
-        (!strict && child[prop as keyof Tree] == value)
-      ) {
+      if (testFn(child, tree, depth + 1)) {
         // Found the matching node
 
-        if (copy) {
-          const newChildren = [...baseTree.children]
-          newChildren.splice(idx + 1, 0, insertTree)
-          return { ...baseTree, children: newChildren }
-        } else {
-          baseTree.children.splice(idx + 1, 0, insertTree)
-          return baseTree
-        }
+        tree.children.splice(idx + 1, 0, subtree)
+        return tree
 
       } else {
 
         // Recursively call insertHelper() on this child node
-        const newChild = insertHelper(child, insertTree, options)
+        const newChild = insertHelper(child, options, tree, depth + 1)
 
         if (newChild !== null) {
           // Found the subtree with the matching node
 
-          if (copy) {
-            const newChildren = [...baseTree.children]
-            newChildren.splice(idx, 1, newChild)
-            return { ...baseTree, children: newChildren }
-          } else {
-            return baseTree
-          }
-
+          return tree
         }
       }
     }
