@@ -1,20 +1,10 @@
-import { Node, Tree } from "./types.js"
+import { Node, Tree } from "./types.js";
 
 interface Options {
-  testFn: (node: Node) => boolean
+  testFn: (node: Node, parent?: Node | null, depth?: number | null) => boolean;
   copy?: boolean,
 }
 
-// Find the given id in tree and return the entire subtree starting at parent
-// If id is at the root, return null
-// If id is not found, throw an error
-
-/**
- * 
- * @param tree 
- * @param options 
- * @returns 
- */
 export function getParent(tree: Tree, options: Options): Node | null {
 
   // Check options
@@ -23,24 +13,49 @@ export function getParent(tree: Tree, options: Options): Node | null {
   }
 
   // Destructure options
-  const { testFn, copy = true } = options
+  const { copy = true } = options
+
+  // Call the helper
+  const result = getParentHelper(
+    copy ? structuredClone(tree) : tree,
+    options,
+    null,
+    0
+  )
+
+  // If a matching node could not be found, throw an error
+  if (result === undefined) {
+    throw new Error("Node with condition could not be found")
+  }
+
+  // Return
+  return result
+}
+
+
+function getParentHelper(
+  tree: Tree,
+  options: Options,
+  parent: Node | null,
+  depth: number
+): Node | null | undefined {
+
+  // Destructure options
+  const { testFn } = options
 
   // If this is the matching node, return null
-  if (testFn(tree)) {
+  if (testFn(tree, parent, depth)) {
     return null
   }
 
   // If any of this node's children passes the condition, return this node
-  if (tree.children.some((x) => testFn(x))) {
-    return copy ? { ...tree } : tree
+  if (tree.children.some((x) => testFn(x, parent, depth + 1))) {
+    return tree
   }
 
   // Recursively check each child subtree
   for (const child of tree.children) {
-    const parent = getParent(child, options)
+    const parent = getParentHelper(child, options, tree, depth + 1)
     if (parent) return parent
   }
-
-  // If a matching node could not be found, throw an error
-  throw new Error("Node with condition could not be found")
 }

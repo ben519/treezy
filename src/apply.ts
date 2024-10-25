@@ -1,19 +1,84 @@
 import { Node, Tree } from "./types.js";
 
+/**
+* Configuration options for applying functions to tree nodes.
+*/
 interface Options {
-  applyFn: (node: Node, parent?: Node | null, depth?: number | null) => any,
-  testFn?: (node: Node, parent?: Node | null, depth?: number | null) => boolean,
-  filter?: "ancestors" | "descendants" | "inclusiveAncestors" | "inclusiveDescendants" | "matches",
-  firstOnly?: boolean,
-  copy?: boolean,
+  /**
+   * Function to apply to matching nodes in the tree.
+   * @param node - The current node being modified
+   * @param parent - The parent of the current node (if any)
+   * @param depth - The depth of the current node in the tree
+   */
+  applyFn: (node: Node, parent?: Node | null, depth?: number | null) => any;
+
+  /**
+   * Function to test each node during traversal.
+   * @param node - The current node being tested
+   * @param parent - The parent of the current node (if any)
+   * @param depth - The depth of the current node in the tree
+   * @returns True if the node should be processed, false otherwise
+   * @default () => true
+   */
+  testFn?: (node: Node, parent?: Node | null, depth?: number | null) => boolean;
+
+  /**
+   * Determines which nodes to apply the function to relative to matching nodes.
+   * - ancestors: Apply to ancestors of matching nodes
+   * - descendants: Apply to descendants of matching nodes
+   * - inclusiveAncestors: Apply to matching nodes and their ancestors
+   * - inclusiveDescendants: Apply to matching nodes and their descendants
+   * - matches: Apply only to matching nodes
+   * @default "matches"
+   */
+  filter?: "ancestors" | "descendants" | "inclusiveAncestors" | "inclusiveDescendants" | "matches";
+
+  /**
+   * When true, stops after applying to the first matching node or set of nodes.
+   * @default false
+   */
+  firstOnly?: boolean;
+
+  /**
+   * When true, creates a deep clone of the tree before processing.
+   * This prevents modifications from affecting the original tree.
+   * @default true
+   */
+  copy?: boolean;
 }
 
 /**
- * 
- * @param tree 
- * @param options 
- * @returns 
- */
+* Applies a function to nodes in a tree based on specified criteria.
+* Traverses the tree and applies the given function to nodes that match
+* the test function, following the specified filter strategy.
+* 
+* @param tree - The tree to process
+* @param options - Configuration options for applying the function
+* @returns The processed tree (either modified original or clone)
+* @throws Error if applyFn is not provided in options
+* 
+* @example
+* const tree = {
+*   value: 1,
+*   children: [
+*     { value: 2, children: [] },
+*     { value: 3, children: [] }
+*   ]
+* };
+* 
+* // Double all values in the tree
+* const result = apply(tree, {
+*   applyFn: (node) => { node.value *= 2 },
+*   copy: true
+* });
+* 
+* // Double values greater than 2
+* const result = apply(tree, {
+*   applyFn: (node) => { node.value *= 2 },
+*   testFn: (node) => node.value > 2,
+*   filter: "matches"
+* });
+*/
 export function apply(tree: Tree, options: Options): Tree {
 
   // Check options
@@ -32,6 +97,18 @@ export function apply(tree: Tree, options: Options): Tree {
   return result
 }
 
+
+/**
+* Helper function that performs the recursive application of functions to nodes.
+* 
+* @param tree - The current tree or subtree being processed
+* @param options - Configuration options for the operation
+* @param parent - The parent node of the current tree (null for root)
+* @param depth - The current depth in the tree (0 for root)
+* @returns True if any modifications were made to this subtree
+* 
+* @private This is an internal helper function not meant for direct use
+*/
 function applyHelper(
   tree: Tree,
   options: Options,
