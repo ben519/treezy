@@ -51,7 +51,7 @@ getSubtree(myTree, { testFn: (x) => x.id === "B" })
 
 ## Notes
 - By default, `treedata` functions never modify their inputs by reference
-- `treedata` expects every node in a tree to include a `children[]` property
+- `treedata` expects every node in a tree to include an array with child nodes
 - `treedata` always scans in depth-first search, pre-order
 - `treedata` expects every tree to have exactly one root node (at depth 0)
 - The parent of a root node is `null`

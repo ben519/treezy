@@ -19,6 +19,12 @@ interface Options {
    * @default true
    */
   copy?: boolean;
+
+  /**
+   * Name of the array property in tree that stores the child nodes
+   * @default "children"
+   */
+  childrenProp?: string;
 }
 
 
@@ -105,7 +111,14 @@ export function prune(tree: Tree, options: Options): Tree | null {
 function pruneHelper(tree: Tree, options: Options, parent: Node | null, depth: number): Tree | null {
 
   // Destructure options
-  const { testFn } = options
+  const { testFn, childrenProp = "children" } = options
+
+  // Check for children nodes
+  if (!Object.hasOwn(tree, childrenProp)) {
+    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
+  } else if (!Array.isArray(tree[childrenProp])) {
+    throw new Error(`Children property '${ childrenProp }' should be an array`)
+  }
 
   // Check if this node passes testFn
   if (testFn(tree, parent, depth)) {
@@ -113,12 +126,12 @@ function pruneHelper(tree: Tree, options: Options, parent: Node | null, depth: n
   }
 
   // Prune each child of this node
-  for (const [idx, child] of tree.children.reverse().entries()) {
+  for (const [idx, child] of tree[childrenProp].reverse().entries()) {
     const newChild = pruneHelper(child, options, tree, depth + 1)
 
-    // If the returned value is null, delete the child from tree.children
+    // If the returned value is null, delete the child from tree[childrenProp]
     if (newChild === null) {
-      tree.children.splice(idx, 1)
+      tree[childrenProp].splice(idx, 1)
     }
   }
 

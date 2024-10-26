@@ -1,4 +1,15 @@
-import { Tree } from "./types.js"
+import { Tree } from "./types.js";
+
+/**
+* Configuration options for checking tree contents.
+*/
+interface Options {
+  /**
+   * Name of the array property in tree that stores the child nodes
+   * @default "children"
+   */
+  childrenProp?: string;
+}
 
 /**
 * Calculates the maximum depth (height) of a tree.
@@ -19,8 +30,8 @@ import { Tree } from "./types.js"
 * 
 * const depth = getDepth(tree); // returns 2
 */
-export function getDepth(tree: Tree): number {
-  return getDepthHelper(tree, 0)
+export function getDepth(tree: Tree, options?: Options): number {
+  return getDepthHelper(tree, options ?? {}, 0)
 }
 
 /**
@@ -34,10 +45,20 @@ export function getDepth(tree: Tree): number {
 * 
 * @private This is an internal helper function not meant for direct use
 */
-function getDepthHelper(tree: Tree, depth: number = 0): number {
+function getDepthHelper(tree: Tree, options: Options, depth: number = 0): number {
+
+  // Destructure options
+  const { childrenProp = "children" } = options
+
+  // Check for children nodes
+  if (!Object.hasOwn(tree, childrenProp)) {
+    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
+  } else if (!Array.isArray(tree[childrenProp])) {
+    throw new Error(`Children property '${ childrenProp }' should be an array`)
+  }
 
   // Get the depth of each child subtree
-  const childDepths = tree.children.map((x) => getDepthHelper(x, depth + 1))
+  const childDepths = tree[childrenProp].map((x: Tree) => getDepthHelper(x, options, depth + 1))
 
   // Return the depth of the tallest child subtree, or the current depth
   return Math.max(...childDepths, depth)

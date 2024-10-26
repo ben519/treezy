@@ -40,6 +40,12 @@ interface Options {
    * @default true
    */
   copy?: boolean;
+
+  /**
+   * Name of the array property in tree that stores the child nodes
+   * @default "children"
+   */
+  childrenProp?: string;
 }
 
 
@@ -145,7 +151,15 @@ function getValuesHelper(
     testFn = () => true,
     filter = "matches",
     firstOnly = false,
+    childrenProp = "children",
   } = options
+
+  // Check for children nodes
+  if (!Object.hasOwn(tree, childrenProp)) {
+    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
+  } else if (!Array.isArray(tree[childrenProp])) {
+    throw new Error(`Children property '${ childrenProp }' should be an array`)
+  }
 
   if (testFn(tree, parent, depth)) {
     // The current node passes the test function
@@ -168,7 +182,7 @@ function getValuesHelper(
     }
 
     // Iterate over each child of the current node
-    for (const child of tree.children) {
+    for (const child of tree[childrenProp]) {
 
       // Recursively call getValuesHelper on this child
       if (["descendants", "inclusiveDescendants"].includes(filter)) {
@@ -191,7 +205,7 @@ function getValuesHelper(
     let foundMatch = false
 
     // Iterate over each child of the current node
-    for (const child of tree.children) {
+    for (const child of tree[childrenProp]) {
 
       // Recursively call getNodesHelper on this child
       const vals = getValuesHelper(child, options, tree, depth + 1)

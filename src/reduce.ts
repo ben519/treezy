@@ -25,6 +25,12 @@ interface Options {
    * @defaultValue true
    */
   copy?: boolean;
+
+  /**
+   * Name of the array property in tree that stores the child nodes
+   * @default "children"
+   */
+  childrenProp?: string;
 }
 
 
@@ -108,13 +114,20 @@ function reduceHelper(
 ): any {
 
   // Destructure options
-  const { reduceFn, initialVal } = options
+  const { reduceFn, initialVal, childrenProp = "children" } = options
+
+  // Check for children nodes
+  if (!Object.hasOwn(tree, childrenProp)) {
+    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
+  } else if (!Array.isArray(tree[childrenProp])) {
+    throw new Error(`Children property '${ childrenProp }' should be an array`)
+  }
 
   // Apply the reduceFn to this node 
   let val = reduceFn(tree, initialVal, parent, depth)
 
   // Recursion
-  for (const child of tree.children) {
+  for (const child of tree[childrenProp]) {
     val = reduceHelper(child, { reduceFn, initialVal: val }, tree, depth + 1)
   }
 

@@ -20,6 +20,12 @@ interface Options {
    * @default true
    */
   copy?: boolean;
+
+  /**
+   * Name of the array property in tree that stores the child nodes
+   * @default "children"
+   */
+  childrenProp?: string;
 }
 
 /**
@@ -88,8 +94,16 @@ export function bifurcate(tree: Tree, options: Options): Result {
 * @private This is an internal helper function not meant for direct use
 */
 function bifurcateHelper(tree: Tree, options: Options, parent: Node | null, depth: number): Result {
+
   // Destructure options
-  const { testFn } = options
+  const { testFn, childrenProp = "children" } = options
+
+  // Check for children nodes
+  if (!Object.hasOwn(tree, childrenProp)) {
+    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
+  } else if (!Array.isArray(tree[childrenProp])) {
+    throw new Error(`Children property '${ childrenProp }' should be an array`)
+  }
 
   if (testFn(tree, parent, depth)) {
     // This node is a match
@@ -100,12 +114,12 @@ function bifurcateHelper(tree: Tree, options: Options, parent: Node | null, dept
     // This node is not a match
 
     // Check each child
-    for (const [idx, child] of tree.children.entries()) {
+    for (const [idx, child] of tree[childrenProp].entries()) {
       const result = bifurcateHelper(child, options, tree, depth + 1)
 
       // If this child subtree was bifurcated, return
       if (result.subtree) {
-        tree.children.splice(idx, 1)
+        tree[childrenProp].splice(idx, 1)
         result.tree = tree
         return result
       }

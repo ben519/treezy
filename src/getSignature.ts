@@ -27,6 +27,12 @@ interface Options {
    * @default ","
    */
   separatorChar?: string;
+
+  /**
+   * Name of the array property in tree that stores the child nodes
+   * @default "children"
+   */
+  childrenProp?: string;
 }
 
 
@@ -67,6 +73,16 @@ interface Options {
 */
 export function getSignature(tree: Tree, options: Options): string {
 
+  // Destructure options
+  const { childrenProp = "children" } = options
+
+  // Check for children nodes
+  if (!Object.hasOwn(tree, childrenProp)) {
+    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
+  } else if (!Array.isArray(tree[childrenProp])) {
+    throw new Error(`Children property '${ childrenProp }' should be an array`)
+  }
+
   const { idProp, openChar = "[", closeChar = "]", separatorChar = "," } = options
 
   if (!Object.hasOwn(tree, idProp)) {
@@ -75,10 +91,10 @@ export function getSignature(tree: Tree, options: Options): string {
 
   let signature = "" + tree[idProp]
 
-  if (tree.children && tree.children.length > 0) {
+  if (tree[childrenProp] && tree[childrenProp].length > 0) {
     signature += openChar
 
-    for (const child of tree.children) {
+    for (const child of tree[childrenProp]) {
       signature += getSignature(child, options) + separatorChar
     }
 

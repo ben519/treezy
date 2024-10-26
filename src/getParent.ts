@@ -18,6 +18,12 @@ interface Options {
    * @default true
    */
   copy?: boolean;
+
+  /**
+   * Name of the array property in tree that stores the child nodes
+   * @default "children"
+   */
+  childrenProp?: string;
 }
 
 
@@ -100,7 +106,14 @@ function getParentHelper(
 ): Node | null | undefined {
 
   // Destructure options
-  const { testFn } = options
+  const { testFn, childrenProp = "children" } = options
+
+  // Check for children nodes
+  if (!Object.hasOwn(tree, childrenProp)) {
+    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
+  } else if (!Array.isArray(tree[childrenProp])) {
+    throw new Error(`Children property '${ childrenProp }' should be an array, but it is ${ tree[childrenProp] }`)
+  }
 
   // If this is the matching node, return null
   if (testFn(tree, parent, depth)) {
@@ -108,12 +121,12 @@ function getParentHelper(
   }
 
   // If any of this node's children passes the condition, return this node
-  if (tree.children.some((x) => testFn(x, parent, depth + 1))) {
+  if (tree[childrenProp].some((x: Tree) => testFn(x, parent, depth + 1))) {
     return tree
   }
 
   // Recursively check each child subtree
-  for (const child of tree.children) {
+  for (const child of tree[childrenProp]) {
     const parent = getParentHelper(child, options, tree, depth + 1)
     if (parent) return parent
   }

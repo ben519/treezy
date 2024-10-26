@@ -45,6 +45,12 @@ interface Options {
    * @default true
    */
   copy?: boolean;
+
+  /**
+   * Name of the array property in tree that stores the child nodes
+   * @default "children"
+   */
+  childrenProp?: string;
 }
 
 /**
@@ -122,7 +128,16 @@ function applyHelper(
     testFn = () => true,
     filter = "matches",
     firstOnly = false,
+    childrenProp = "children",
   } = options
+
+
+  // Check for children nodes
+  if (!Object.hasOwn(tree, childrenProp)) {
+    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
+  } else if (!Array.isArray(tree[childrenProp])) {
+    throw new Error(`Children property '${ childrenProp }' should be an array`)
+  }
 
   if (testFn(tree)) {
     // The current node passes the test function
@@ -142,7 +157,7 @@ function applyHelper(
     }
 
     // Iterate over each child of the current node
-    for (const child of tree.children) {
+    for (const child of tree[childrenProp]) {
 
       // Recursively call applyHelper on this child
       if (["descendants", "inclusiveDescendants"].includes(filter)) {
@@ -160,7 +175,7 @@ function applyHelper(
     let foundMatch = false
 
     // Iterate over each child of the current node
-    for (const child of tree.children) {
+    for (const child of tree[childrenProp]) {
 
       // Recursively call applyHelper on this child
       const subtree = applyHelper(child, options, tree, depth + 1)

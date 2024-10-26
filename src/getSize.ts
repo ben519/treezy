@@ -13,6 +13,12 @@ interface Options {
    * @default () => true - counts all nodes if not specified
    */
   testFn?: (node: Node, parent?: Node | null, depth?: number) => boolean;
+
+  /**
+   * Name of the array property in tree that stores the child nodes
+   * @default "children"
+   */
+  childrenProp?: string;
 }
 
 
@@ -67,12 +73,19 @@ function getSizeHelper(
 ): number {
 
   // Destructure
-  const { testFn = () => true } = options ?? {}
+  const { testFn = () => true, childrenProp = "children" } = options ?? {}
+
+  // Check for children nodes
+  if (!Object.hasOwn(tree, childrenProp)) {
+    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
+  } else if (!Array.isArray(tree[childrenProp])) {
+    throw new Error(`Children property '${ childrenProp }' should be an array`)
+  }
 
   // Count this node?
   const addend = testFn(tree, parent, depth) ? 1 : 0
 
   // Return addend + the collective size of each of this tree's children
-  const counts = tree.children.map((x) => getSizeHelper(x, tree, depth + 1, options))
-  return counts.reduce((a, b) => a + b, addend)
+  const counts = tree[childrenProp].map((x: Tree) => getSizeHelper(x, tree, depth + 1, options))
+  return counts.reduce((a: any, b: any) => a + b, addend)
 }

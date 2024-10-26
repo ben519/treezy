@@ -10,15 +10,11 @@
  *   metadata: { created: "2024-01-01" }
  * };
  */
-export type Node = {
-  /** Array of child nodes in the tree */
-  [key: string]: any;
 
-  /** 
-   * Allows any additional string-keyed properties.
-   * This enables flexible metadata storage on nodes.
-   */
-  children: Node[];
-}
+export type Node<TChildrenKey extends string = 'children'> = {
+  [key: string]: any;
+} & {
+  [K in TChildrenKey]: Node<TChildrenKey>[];
+};
 
 export type Tree = Node

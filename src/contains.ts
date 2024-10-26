@@ -1,4 +1,4 @@
-import { Node, Tree } from "./types.js"
+import { Node, Tree } from "./types.js";
 
 
 /**
@@ -13,7 +13,13 @@ interface Options {
    * @returns True if the node passes the test, false otherwise
    * @default () => true
    */
-  testFn: (node: Node, parent?: Node | null, depth?: number) => boolean
+  testFn: (node: Node, parent?: Node | null, depth?: number) => boolean;
+
+  /**
+   * Name of the array property in tree that stores the child nodes
+   * @default "children"
+   */
+  childrenProp?: string;
 }
 
 /**
@@ -57,13 +63,23 @@ export function contains(tree: Tree, options: Options): boolean {
 
 function containsHelper(tree: Tree, options: Options, parent: Node | null, depth: number): boolean {
 
+  // Destructure options
+  const { testFn, childrenProp = "children" } = options
+
+  // Check for children nodes
+  if (!Object.hasOwn(tree, childrenProp)) {
+    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
+  } else if (!Array.isArray(tree[childrenProp])) {
+    throw new Error(`Children property '${ childrenProp }' should be an array`)
+  }
+
   // If this node passes testFn, return true
-  if (options.testFn(tree, parent, depth)) {
+  if (testFn(tree, parent, depth)) {
     return true
   }
 
   // Recursively check this node's children
-  for (const child of tree.children) {
+  for (const child of tree[childrenProp]) {
     if (containsHelper(child, options, tree, depth + 1)) {
       return true
     }
