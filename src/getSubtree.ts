@@ -15,7 +15,7 @@ interface Options {
 
   /**
    * Whether to create a deep copy of the tree before searching.
-   * Set to false if you want to modify the original tree.
+   * Set to false to modify the original tree.
    * @default true
    */
   copy?: boolean;

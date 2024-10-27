@@ -1,8 +1,8 @@
 import { Node, Tree } from "./types.js";
 
 /**
- * Options for finding a parent node in a tree structure.
- */
+* Configuration options for tree traversal and node filtering.
+*/
 interface Options {
   /**
    * Function to test each node in the tree.
@@ -15,6 +15,7 @@ interface Options {
 
   /**
    * Whether to create a deep copy of the tree before traversing.
+   * Set to false to return a reference to the parent node in the original tree.
    * @default true
    */
   copy?: boolean;

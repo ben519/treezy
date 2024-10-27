@@ -4,59 +4,69 @@ import { tree1, tree2, tree5 } from "./trees"
 
 test("apply function to the entire tree", () => {
   const tree1Copy = structuredClone(tree1)
+  const tree1Inplace = structuredClone(tree1)
+
   const tree2Copy = structuredClone(tree2)
+  const tree2Inplace = structuredClone(tree2)
+
   const tree5Copy = structuredClone(tree5)
+  const tree5Inplace = structuredClone(tree5)
 
-  expect(apply(tree1Copy, { applyFn: (x) => x.foo = "yo" }))
-    .toEqual({ id: 1, foo: "yo", children: [] })
-
-  expect(apply(tree2Copy, { applyFn: (x) => x.foo = "yo" }))
-    .toEqual({
-      id: 1,
-      foo: "yo",
-      children: [
-        { id: 2, foo: "yo", children: [] },
-        { id: 3, foo: "yo", children: [] },
-      ],
-    })
-
-  expect(apply(tree5Copy, { applyFn: (x) => x.foo = "yo" }))
-    .toEqual({
-      id: 1,
-      foo: "yo",
-      children: [
-        {
-          id: 2,
-          foo: "yo",
-          children: [
-            { id: 6, foo: "yo", children: [] },
-            { id: 7, foo: "yo", children: [] },
-          ],
-        },
-        {
-          id: 3,
-          foo: "yo",
-          children: [
-            { id: 8, foo: "yo", children: [] }
-          ]
-        },
-        {
-          id: 4,
-          foo: "yo",
-          children: [
-            { id: 9, foo: "yo", children: [] },
-            {
-              id: 10,
-              foo: "yo",
-              children: [{ id: 11, foo: "yo", children: [] }]
-            },
-          ],
-        },
-      ],
-    })
-
+  const res1 = { id: 1, foo: "yo", children: [] }
+  expect(apply(tree1Copy, { applyFn: (x) => x.foo = "yo" })).toEqual(res1)
+  expect(apply(tree1Inplace, { applyFn: (x) => x.foo = "yo", copy: false })).toEqual(res1)
+  expect(tree1Inplace).toEqual(res1)
   expect(tree1Copy).toEqual(tree1)
+
+  const res2 = {
+    id: 1,
+    foo: "yo",
+    children: [
+      { id: 2, foo: "yo", children: [] },
+      { id: 3, foo: "yo", children: [] },
+    ],
+  }
+  expect(apply(tree2Copy, { applyFn: (x) => x.foo = "yo" })).toEqual(res2)
+  expect(apply(tree2Inplace, { applyFn: (x) => x.foo = "yo", copy: false })).toEqual(res2)
+  expect(tree2Inplace).toEqual(res2)
   expect(tree2Copy).toEqual(tree2)
+
+  const res3 = {
+    id: 1,
+    foo: "yo",
+    children: [
+      {
+        id: 2,
+        foo: "yo",
+        children: [
+          { id: 6, foo: "yo", children: [] },
+          { id: 7, foo: "yo", children: [] },
+        ],
+      },
+      {
+        id: 3,
+        foo: "yo",
+        children: [
+          { id: 8, foo: "yo", children: [] }
+        ]
+      },
+      {
+        id: 4,
+        foo: "yo",
+        children: [
+          { id: 9, foo: "yo", children: [] },
+          {
+            id: 10,
+            foo: "yo",
+            children: [{ id: 11, foo: "yo", children: [] }]
+          },
+        ],
+      },
+    ],
+  }
+  expect(apply(tree5Copy, { applyFn: (x) => x.foo = "yo" })).toEqual(res3)
+  expect(apply(tree5Inplace, { applyFn: (x) => x.foo = "yo", copy: false })).toEqual(res3)
+  expect(tree5Inplace).toEqual(res3)
   expect(tree5Copy).toEqual(tree5)
 })
 

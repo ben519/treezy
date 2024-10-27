@@ -2,10 +2,10 @@ import { Node, Tree } from "./types.js";
 
 
 /**
- * Options for configuring the reduce operation on a tree structure
- */
+* Configuration options for reducing a tree to a value.
+*/
 interface Options {
-  /** 
+  /**
    * Function to execute on each node of the tree
    * @param node - Current node being processed
    * @param initialVal - Accumulated value from previous iterations

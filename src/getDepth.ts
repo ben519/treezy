@@ -1,7 +1,7 @@
 import { Tree } from "./types.js";
 
 /**
-* Configuration options for checking tree contents.
+* Configuration options for tree traversal.
 */
 interface Options {
   /**

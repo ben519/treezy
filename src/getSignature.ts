@@ -4,7 +4,7 @@ import { Tree } from "./types.js";
 * Configuration options for signature generation
 */
 interface Options {
-  /** 
+  /**
    * Property name to use as the node identifier in the tree
    * Must exist on all nodes in the tree
    */

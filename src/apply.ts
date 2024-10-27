@@ -1,7 +1,7 @@
 import { Node, Tree } from "./types.js";
 
 /**
-* Configuration options for applying functions to tree nodes.
+* Configuration options for tree traversal, modification, and node filtering.
 */
 interface Options {
   /**
@@ -40,8 +40,8 @@ interface Options {
   firstOnly?: boolean;
 
   /**
-   * When true, creates a deep clone of the tree before processing.
-   * This prevents modifications from affecting the original tree.
+   * Whether to create a deep copy of the tree before modifying.
+   * Set to false to modify the original tree.
    * @default true
    */
   copy?: boolean;

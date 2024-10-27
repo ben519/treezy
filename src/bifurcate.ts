@@ -4,7 +4,7 @@ import { Node, Tree } from "./types.js";
 * Configuration options for tree traversal and node filtering.
 */
 interface Options {
-  /** 
+  /**
    * Function to test each node during traversal.
    * @param node - The current node being tested
    * @param parent - The parent of the current node (if any)
@@ -15,8 +15,8 @@ interface Options {
   testFn: (node: Node, parent?: Node | null, depth?: number) => boolean;
 
   /**
-   * When true, creates a deep clone of the tree before processing.
-   * This prevents modifications from affecting the original tree.
+   * Whether to create a deep copy of the tree before modifying.
+   * Set to false to modify the original tree.
    * @default true
    */
   copy?: boolean;

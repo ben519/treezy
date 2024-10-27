@@ -98,6 +98,179 @@ export const tree8 = {
   ],
 }
 
+// Linear tree (like a linked list)
+export const tree9 = {
+  id: 1,
+  children: [{
+    id: 2,
+    children: [{
+      id: 3,
+      children: [{
+        id: 4,
+        children: [{
+          id: 5,
+          children: []
+        }]
+      }]
+    }]
+  }]
+};
+
+// Root with all children
+export const tree10 = {
+  id: 1,
+  children: [
+    { id: 2, children: [] },
+    { id: 3, children: [] },
+    { id: 4, children: [] },
+    { id: 5, children: [] }
+  ]
+};
+
+// Root with three children, one having a child
+export const tree11 = {
+  id: 1,
+  children: [
+    { id: 2, children: [{ id: 5, children: [] }] },
+    { id: 3, children: [] },
+    { id: 4, children: [] }
+  ]
+};
+
+// Root with two children, one having two children
+export const tree12 = {
+  id: 1,
+  children: [
+    {
+      id: 2, children: [
+        { id: 4, children: [] },
+        { id: 5, children: [] }
+      ]
+    },
+    { id: 3, children: [] }
+  ]
+};
+
+// Root with two children, one having one child that has one child
+export const tree13 = {
+  id: 1,
+  children: [
+    {
+      id: 2, children: [{
+        id: 4,
+        children: [{ id: 5, children: [] }]
+      }]
+    },
+    { id: 3, children: [] }
+  ]
+};
+
+// Two levels of two children each
+export const tree14 = {
+  id: 1,
+  children: [
+    {
+      id: 2, children: [
+        { id: 4, children: [] },
+        { id: 5, children: [] }
+      ]
+    },
+    { id: 3, children: [] }
+  ]
+};
+
+// Root with two children, second having two children
+export const tree15 = {
+  id: 1,
+  children: [
+    { id: 2, children: [] },
+    {
+      id: 3, children: [
+        { id: 4, children: [] },
+        { id: 5, children: [] }
+      ]
+    }
+  ]
+};
+
+// Root with two children, second having a child with a child
+export const tree16 = {
+  id: 1,
+  children: [
+    { id: 2, children: [] },
+    {
+      id: 3, children: [{
+        id: 4,
+        children: [{ id: 5, children: [] }]
+      }]
+    }
+  ]
+};
+
+// Balanced binary tree
+export const tree17 = {
+  id: 1,
+  children: [
+    { id: 2, children: [{ id: 4, children: [] }] },
+    { id: 3, children: [{ id: 5, children: [] }] }
+  ]
+};
+
+// Root with two children, first having two children, one of them having a child
+export const tree18 = {
+  id: 1,
+  children: [
+    {
+      id: 2, children: [
+        { id: 3, children: [] },
+        { id: 4, children: [{ id: 5, children: [] }] }
+      ]
+    }
+  ]
+};
+
+// Root with one child having three children
+export const tree19 = {
+  id: 1,
+  children: [{
+    id: 2,
+    children: [
+      { id: 3, children: [] },
+      { id: 4, children: [] },
+      { id: 5, children: [] }
+    ]
+  }]
+};
+
+// Root with one child, having one child, having two children
+export const tree20 = {
+  id: 1,
+  children: [{
+    id: 2,
+    children: [{
+      id: 3,
+      children: [
+        { id: 4, children: [] },
+        { id: 5, children: [] }
+      ]
+    }]
+  }]
+};
+
+// Root with two children, second child having a child with a child
+export const tree21 = {
+  id: 1,
+  children: [
+    { id: 2, children: [] },
+    {
+      id: 3, children: [{
+        id: 4,
+        children: [{ id: 5, children: [] }]
+      }]
+    }
+  ]
+};
+
 export const commentThread = {
   id: 234424,
   userId: 489294,

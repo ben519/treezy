@@ -1,11 +1,10 @@
 import { Node, Tree } from "./types.js";
 
-
 /**
-* Configuration options for checking tree contents.
+* Configuration options for tree traversal and node filtering.
 */
 interface Options {
-  /** 
+  /**
    * Function to test each node during traversal.
    * @param node - The current node being tested
    * @param parent - The parent of the current node (if any)
