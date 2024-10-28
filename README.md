@@ -1,8 +1,17 @@
 # treezy
+
+[![Downloads][downloads-badge]][downloads]
+[![Size][size-badge]][size]
+
 🌲 `treezy` is a tiny and fast Node.js package for creating and manipulating hierarchal (tree-shaped) data.
 
 ## Installation
-ToDo
+
+In Node.js (version 16+), install with [npm][]:
+
+```shell
+npm install treezy
+```
 
 ## Example usage
 A _tree_ can be any JavaScript object that contains an array of children, where each child is another JavaScript object that matches the structure of its parent.
@@ -157,3 +166,15 @@ import { prune } from "treezy"
 
 prune(comment, { testFn: (node, parent, depth) => depth >= 2 })
 ```
+
+<!-- Definitions -->
+
+[downloads-badge]: https://img.shields.io/npm/dm/treezy.svg
+
+[downloads]: https://www.npmjs.com/package/treezy
+
+[size-badge]: https://img.shields.io/badge/dynamic/json?label=minzipped%20size&query=$.size.compressedSize&url=https://deno.bundlejs.com/?q=treezy
+
+[size]: https://bundlejs.com/?q=treezy
+
+[npm]: https://docs.npmjs.com/cli/install
