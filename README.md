@@ -1,5 +1,5 @@
-# treedata
-🌲 `treedata` is a tiny and fast Node.js package for creating and manipulating hierarchal (tree-shaped) data.
+# treezy
+🌲 `treezy` is a tiny and fast Node.js package for creating and manipulating hierarchal (tree-shaped) data.
 
 ## Installation
 ToDo
@@ -23,11 +23,11 @@ const myTree = {
 }
 ```
 
-`treedata` makes it easy to do things like...
+`treezy` makes it easy to do things like...
 
 **Count the number of nodes in the tree**
 ```js
-import { getSize } from "treedata"
+import { getSize } from "treezy"
 
 getSize(myTree) 
 // Returns: 3
@@ -35,7 +35,7 @@ getSize(myTree)
 
 **Check if the tree contains at least one node with `id` equal to "Q"**
 ```js
-import { contains } from "treedata"
+import { contains } from "treezy"
 
 contains(myTree, { testFn: (x) => x.id === "Q" }) 
 // Returns: false
@@ -43,17 +43,17 @@ contains(myTree, { testFn: (x) => x.id === "Q" })
 
 **Extract the subtree starting at the node with `id` equal to "B"**
 ```js
-import { getSubtree } from "treedata"
+import { getSubtree } from "treezy"
 
 getSubtree(myTree, { testFn: (x) => x.id === "B" }) 
 // Returns: { id: "B", children: [] }
 ```
 
 ## Notes
-- By default, `treedata` functions never modify their inputs by reference
-- `treedata` expects every node in a tree to include an array with child nodes
-- `treedata` always scans in depth-first search, pre-order
-- `treedata` expects every tree to have exactly one root node (at depth 0)
+- By default, `treezy` functions never modify their inputs by reference
+- `treezy` expects every node in a tree to include an array with child nodes
+- `treezy` always scans in depth-first search, pre-order
+- `treezy` expects every tree to have exactly one root node (at depth 0)
 - The parent of a root node is `null`
 
 ## API
@@ -116,21 +116,21 @@ const comment = {
 
 ### How do I count the total number of comments?
 ```js
-import { getSize } from "treedata"
+import { getSize } from "treezy"
 
 getSize(comment) // 4
 ```
 
 ### How do I count the number of comments by a particular user?
 ```js
-import { getSize } from "treedata"
+import { getSize } from "treezy"
 
 getSize(comment, { testFn: (node) => node.userId === 489294 }) // 2
 ```
 
 ### How do I determine the max number of likes given to any single comment?
 ```js
-import { reduce } from "treedata"
+import { reduce } from "treezy"
 
 const reducer = (node, initVal) => Math.max(node.likes, initVal)
 reduce(comment, { reduceFn: reducer, initialVal: 0 }) // 3
@@ -138,14 +138,14 @@ reduce(comment, { reduceFn: reducer, initialVal: 0 }) // 3
 
 ### How do I flatten the comments into a 1-D array?
 ```js
-import { getValues } from "treedata"
+import { getValues } from "treezy"
 
 getValues(comment) // [{id: 234424, ...}, {id: 248210, ...}, ...]
 ```
 
 ### How do I retrieve all the comment values?
 ```js
-import { getValues } from "treedata"
+import { getValues } from "treezy"
 
 getValues(comment, { getFn: (node) => node.text })
 // ["I like dogs", "So do I!", ...]
@@ -153,7 +153,7 @@ getValues(comment, { getFn: (node) => node.text })
 
 ### How do I remove comments which are replies to replies, or deeper?
 ```js
-import { prune } from "treedata"
+import { prune } from "treezy"
 
 prune(comment, { testFn: (node, parent, depth) => depth >= 2 })
 ```

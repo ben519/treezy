@@ -1,9 +1,9 @@
 {
-  "name": "treedata",
+  "name": "treezy",
   "type": "module",
   "version": "0.0.1",
   "repository": {
-    "url": "https://https://github.com/ben519/treedata"
+    "url": "https://https://github.com/ben519/treezy"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -19,7 +19,7 @@
   ],
   "author": "neb519",
   "license": "MIT",
-  "description": "treedata is a package for storing and manipulating hierarchical data. For example, comments on Reddit or YouTube.",
+  "description": "treezy is a package for storing and manipulating hierarchical data. For example, comments on Reddit or YouTube.",
   "devDependencies": {
     "@types/jest": "^29.5.13",
     "jest": "^29.7.0",
