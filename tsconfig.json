@@ -32,9 +32,6 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
 
-    // Enables incremental builds for faster recompilation
-    "incremental": true,
-
     // Prefer modern features like optional chaining, nullish coalescing, etc.
     "useDefineForClassFields": true,
 
