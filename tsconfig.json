@@ -51,7 +51,10 @@
     "maxNodeModuleJsDepth": 2,
 
     // Node.js types and DOM types for browser-based projects
-    "lib": ["ES2022", "DOM", "dom.iterable"]
+    "lib": ["ES2022", "DOM", "dom.iterable"],
+
+    // Create a declaration file
+    "declaration": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "__tests__/**/*.test.ts"]
