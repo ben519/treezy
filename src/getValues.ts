@@ -10,8 +10,9 @@ interface Options {
    * @param parent - The parent node of the current node, if any
    * @param depth - The depth of the current node in the tree (0-based)
    * @returns The value to extract from this node
+   * @default (x) => x - return each node if not specified
    */
-  getFn: (node: Node, parent?: Node | null, depth?: number) => any;
+  getFn?: (node: Node, parent?: Node | null, depth?: number) => any;
 
   /**
    * Function to filter which nodes should be processed
@@ -54,7 +55,7 @@ interface Options {
 * 
 * @param tree - The root node of the tree to search
 * @param options - Configuration options for extracting values
-* @param options.getFn - Function to extract a value from each node
+* @param options.getFn - Function to extract a value from each node (defaults to the node)
 * @param options.testFn - Function to filter which nodes to process (defaults to all nodes)
 * @param options.filter - Determines which related nodes to include:
 *   - "matches": Only nodes matching testFn (default)
@@ -103,20 +104,15 @@ interface Options {
 *   firstOnly: true
 * }); // Returns [20]
 */
-export function getValues(tree: Tree, options: Options): any[] {
-
-  // Check options
-  if (!Object.hasOwn(options, "getFn")) {
-    throw new Error("'getFn' must be given")
-  }
+export function getValues(tree: Tree, options?: Options): any[] {
 
   // Destructure options
-  const { copy = true } = options ?? {}
+  const { copy = true, getFn = (x: Node) => x } = options ?? {}
 
   // Call helper function
   const result = getValuesHelper(
     copy ? structuredClone(tree) : tree,
-    options,
+    options ?? {},
     null,
     0
   )
@@ -147,7 +143,7 @@ function getValuesHelper(
 
   // Destructure options
   const {
-    getFn,
+    getFn = (x: Node) => x,
     testFn = () => true,
     filter = "matches",
     firstOnly = false,
