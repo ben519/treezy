@@ -8,7 +8,6 @@ __tests__/
 tsconfig.json
 tsup.config.ts
 
-*.d.ts
 *.log
 
 tinker.js
