@@ -1,7 +1,7 @@
 /**
  * Represents a node in a tree structure.
  * A node contains an array of child nodes and can have any additional string-keyed properties.
- * 
+ *
  * @example
  * const node: Node = {
  *   children: [],
@@ -11,10 +11,10 @@
  * };
  */
 
-export type Node<TChildrenKey extends string = 'children'> = {
-  [key: string]: any;
+export type Node<TChildrenKey extends string = "children"> = {
+  [key: string]: any
 } & {
-  [K in TChildrenKey]: Node<TChildrenKey>[];
-};
+  [K in TChildrenKey]: Node<TChildrenKey>[]
+}
 
-export type Tree = Node
+export type Tree<TChildrenKey extends string = "children"> = Node<TChildrenKey>
