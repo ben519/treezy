@@ -1,8 +1,8 @@
-import { Node, Tree } from "./types.js";
+import { Node } from "./types.js"
 
 /**
-* Configuration options for tree traversal, modification, and node filtering.
-*/
+ * Configuration options for tree traversal, modification, and node filtering.
+ */
 interface Options {
   /**
    * Function to apply to matching nodes in the tree.
@@ -10,7 +10,7 @@ interface Options {
    * @param parent - The parent of the current node (if any)
    * @param depth - The depth of the current node in the tree
    */
-  applyFn: (node: Node, parent?: Node | null, depth?: number) => any;
+  applyFn: (node: Node, parent?: Node | null, depth?: number) => any
 
   /**
    * Function to test each node during traversal.
@@ -20,7 +20,7 @@ interface Options {
    * @returns True if the node should be processed, false otherwise
    * @default () => true
    */
-  testFn?: (node: Node, parent?: Node | null, depth?: number) => boolean;
+  testFn?: (node: Node, parent?: Node | null, depth?: number) => boolean
 
   /**
    * Determines which nodes to apply the function to relative to matching nodes.
@@ -31,62 +31,66 @@ interface Options {
    * - matches: Apply only to matching nodes
    * @default "matches"
    */
-  filter?: "ancestors" | "descendants" | "inclusiveAncestors" | "inclusiveDescendants" | "matches";
+  filter?:
+    | "ancestors"
+    | "descendants"
+    | "inclusiveAncestors"
+    | "inclusiveDescendants"
+    | "matches"
 
   /**
    * When true, stops after applying to the first matching node or set of nodes.
    * @default false
    */
-  firstOnly?: boolean;
+  firstOnly?: boolean
 
   /**
    * Whether to create a deep copy of the tree before modifying.
    * Set to false to modify the original tree.
    * @default true
    */
-  copy?: boolean;
+  copy?: boolean
 
   /**
    * Name of the array property in tree that stores the child nodes
    * @default "children"
    */
-  childrenProp?: string;
+  childrenKey?: string
 }
 
 /**
-* Applies a function to nodes in a tree based on specified criteria.
-* Traverses the tree and applies the given function to nodes that match
-* the test function, following the specified filter strategy.
-* 
-* @param tree - The tree to process
-* @param options - Configuration options for applying the function
-* @returns The processed tree (either modified original or clone)
-* @throws Error if applyFn is not provided in options
-* 
-* @example
-* const tree = {
-*   value: 1,
-*   children: [
-*     { value: 2, children: [] },
-*     { value: 3, children: [] }
-*   ]
-* };
-* 
-* // Double all values in the tree
-* const result = apply(tree, {
-*   applyFn: (node) => { node.value *= 2 },
-*   copy: true
-* });
-* 
-* // Double values greater than 2
-* const result = apply(tree, {
-*   applyFn: (node) => { node.value *= 2 },
-*   testFn: (node) => node.value > 2,
-*   filter: "matches"
-* });
-*/
-export function apply(tree: Tree, options: Options): Tree {
-
+ * Applies a function to nodes in a tree based on specified criteria.
+ * Traverses the tree and applies the given function to nodes that match
+ * the test function, following the specified filter strategy.
+ *
+ * @param tree - The tree to process
+ * @param options - Configuration options for applying the function
+ * @returns The processed tree (either modified original or clone)
+ * @throws Error if applyFn is not provided in options
+ *
+ * @example
+ * const tree = {
+ *   value: 1,
+ *   children: [
+ *     { value: 2, children: [] },
+ *     { value: 3, children: [] }
+ *   ]
+ * };
+ *
+ * // Double all values in the tree
+ * const result = apply(tree, {
+ *   applyFn: (node) => { node.value *= 2 },
+ *   copy: true
+ * });
+ *
+ * // Double values greater than 2
+ * const result = apply(tree, {
+ *   applyFn: (node) => { node.value *= 2 },
+ *   testFn: (node) => node.value > 2,
+ *   filter: "matches"
+ * });
+ */
+export function apply(tree: Node, options: Options): Node {
   // Check options
   if (!Object.hasOwn(options, "applyFn")) {
     throw new Error("'applyFn' must be given")
@@ -103,40 +107,39 @@ export function apply(tree: Tree, options: Options): Tree {
   return result
 }
 
-
 /**
-* Helper function that performs the recursive application of functions to nodes.
-* 
-* @param tree - The current tree or subtree being processed
-* @param options - Configuration options for the operation
-* @param parent - The parent node of the current tree (null for root)
-* @param depth - The current depth in the tree (0 for root)
-* @returns True if any modifications were made to this subtree
-* 
-* @private This is an internal helper function not meant for direct use
-*/
+ * Helper function that performs the recursive application of functions to nodes.
+ *
+ * @param tree - The current tree or subtree being processed
+ * @param options - Configuration options for the operation
+ * @param parent - The parent node of the current tree (null for root)
+ * @param depth - The current depth in the tree (0 for root)
+ * @returns True if any modifications were made to this subtree
+ *
+ * @private This is an internal helper function not meant for direct use
+ */
 function applyHelper(
-  tree: Tree,
+  tree: Node,
   options: Options,
   parent: Node | null,
-  depth: number,
+  depth: number
 ): boolean {
-
   // Destructure options
   const {
     applyFn,
     testFn = () => true,
     filter = "matches",
     firstOnly = false,
-    childrenProp = "children",
+    childrenKey = "children",
   } = options
 
-
   // Check for children nodes
-  if (!Object.hasOwn(tree, childrenProp)) {
-    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
-  } else if (!Array.isArray(tree[childrenProp])) {
-    throw new Error(`Children property '${ childrenProp }' should be an array`)
+  if (!Object.hasOwn(tree, childrenKey)) {
+    throw new Error(
+      `Children property '${childrenKey}' is missing from at least one node`
+    )
+  } else if (!Array.isArray(tree[childrenKey])) {
+    throw new Error(`Children property '${childrenKey}' should be an array`)
   }
 
   if (testFn(tree)) {
@@ -152,31 +155,36 @@ function applyHelper(
     }
 
     // Exit early?
-    if ((filter === "matches" && firstOnly) || filter === "inclusiveAncestors") {
+    if (
+      (filter === "matches" && firstOnly) ||
+      filter === "inclusiveAncestors"
+    ) {
       return true
     }
 
     // Iterate over each child of the current node
-    for (const child of tree[childrenProp]) {
-
+    for (const child of tree[childrenKey]) {
       // Recursively call applyHelper on this child
       if (["descendants", "inclusiveDescendants"].includes(filter)) {
-        applyHelper(child, { ...options, testFn: () => true, filter: "inclusiveDescendants" }, tree, depth + 1)
+        applyHelper(
+          child,
+          { ...options, testFn: () => true, filter: "inclusiveDescendants" },
+          tree,
+          depth + 1
+        )
       } else if (filter === "matches") {
         applyHelper(child, options, tree, depth + 1)
       }
     }
 
     return true
-
   } else {
     // The current node doesn't pass the test function
 
     let foundMatch = false
 
     // Iterate over each child of the current node
-    for (const child of tree[childrenProp]) {
-
+    for (const child of tree[childrenKey]) {
       // Recursively call applyHelper on this child
       const subtree = applyHelper(child, options, tree, depth + 1)
 

@@ -1,9 +1,12 @@
-import { Node, Tree } from "./types.js"
+import { Node } from "./types.js"
 
 /**
  * Configuration options for counting nodes
  */
-interface Options<TChildrenKey extends string = "children"> {
+interface Options<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {}
+> {
   /**
    * Function to test whether a node should be counted
    * @param node - The current node being tested
@@ -13,8 +16,8 @@ interface Options<TChildrenKey extends string = "children"> {
    * @default () => true - counts all nodes if not specified
    */
   testFn?: (
-    node: Node<TChildrenKey>,
-    parent?: Node<TChildrenKey> | null,
+    node: Node<TChildrenKey, TExtraProps>,
+    parent?: Node<TChildrenKey, TExtraProps> | null,
     depth?: number
   ) => boolean
 
@@ -22,16 +25,17 @@ interface Options<TChildrenKey extends string = "children"> {
    * Name of the array property in tree that stores the child nodes
    * @default "children"
    */
-  childrenProp?: TChildrenKey
+  childrenKey?: TChildrenKey
 }
 
 /**
  * Counts the number of nodes in a tree that match an optional test condition.
  * If no test condition is provided, counts all nodes.
  *
- * @param tree - The root node of the tree to measure
- * @param options - Configuration options for counting nodes
- * @param options.testFn - Optional function to filter which nodes should be counted
+ * @param tree - The tree to search
+ * @param options - Configuration options containing the test function
+ * @param options.childrenKey - Optional name of the array property in tree that stores the child nodes
+ * @param options.testFn - Optional function to filter which nodes should be checked
  * @returns The number of matching nodes in the tree
  *
  * @example
@@ -51,11 +55,19 @@ interface Options<TChildrenKey extends string = "children"> {
  *   testFn: (node) => node.value % 2 === 0
  * });
  */
-export function getSize<TChildrenKey extends string = "children">(
-  tree: Node<TChildrenKey>,
-  options?: Options<TChildrenKey>
-): number {
-  return getSizeHelper(tree, null, 0, options ?? {})
+export function getSize<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(tree: TNode, options?: Options<TChildrenKey, TExtraProps>): number {
+  return getSizeHelper<TChildrenKey, TExtraProps, TNode>(tree, null, 0, {
+    childrenKey: "children" as TChildrenKey,
+    testFn: () => true,
+    ...options,
+  })
 }
 
 /**
@@ -70,27 +82,27 @@ export function getSize<TChildrenKey extends string = "children">(
  * @internal
  * This is an internal helper function and should not be called directly.
  */
-function getSizeHelper<TChildrenKey extends string>(
-  tree: Tree<TChildrenKey>,
-  parent: Node<TChildrenKey> | null,
+function getSizeHelper<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(
+  node: TNode,
+  parent: TNode | null,
   depth: number,
-  options: Options<TChildrenKey>
+  options: Required<Options<TChildrenKey, TExtraProps>>
 ): number {
-  const { testFn = () => true, childrenProp = "children" as TChildrenKey } =
-    options ?? {}
-
-  const children: Node<TChildrenKey>[] = tree[childrenProp]
-
-  if (!Array.isArray(children)) {
-    throw new Error(`Children property '${childrenProp}' should be an array`)
-  }
-
-  // Count this node?
-  const addend = testFn(tree, parent, depth) ? 1 : 0
-
-  const childCounts = children.map((child) =>
-    getSizeHelper(child, tree, depth + 1, options)
+  const { childrenKey, testFn } = options
+  const children = node[childrenKey]
+  const count = testFn(node, parent, depth) ? 1 : 0
+  return (
+    count +
+    children.reduce(
+      (sum, child) => sum + getSizeHelper(child, node, depth + 1, options),
+      0
+    )
   )
-
-  return childCounts.reduce((sum, count) => sum + count, addend)
 }

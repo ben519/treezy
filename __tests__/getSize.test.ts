@@ -11,10 +11,22 @@ test("Check node count without condition", () => {
 })
 
 test("Check node count with condition", () => {
-  expect(getSize(tree1, { testFn: (x) => x.id <= 3 })).toBe(1)
-  expect(getSize(tree2, { testFn: (x) => x.id <= 3 })).toBe(3)
-  expect(getSize(tree3, { testFn: (x) => x.id <= 3 })).toBe(2)
-  expect(getSize(tree4, { testFn: (x) => x.id <= 3 })).toBe(3)
-  expect(getSize(tree5, { testFn: (x) => x.id <= 3 })).toBe(3)
-  expect(getSize(tree6, { testFn: (x) => x.id <= 3 })).toBe(3)
+  expect(
+    getSize<"children", { id: number }>(tree1, { testFn: (x) => x.id <= 3 })
+  ).toBe(1)
+  expect(
+    getSize<"children", { id: number }>(tree2, { testFn: (x) => x.id <= 3 })
+  ).toBe(3)
+  expect(
+    getSize<"children", { id: number }>(tree3, { testFn: (x) => x.id <= 3 })
+  ).toBe(2)
+  expect(
+    getSize<"children", { id: number }>(tree4, { testFn: (x) => x.id <= 3 })
+  ).toBe(3)
+  expect(
+    getSize<"children", { id: number }>(tree5, { testFn: (x) => x.id <= 3 })
+  ).toBe(3)
+  expect(
+    getSize<"children", { id: number }>(tree6, { testFn: (x) => x.id <= 3 })
+  ).toBe(3)
 })

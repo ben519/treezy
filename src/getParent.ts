@@ -1,8 +1,8 @@
-import { Node, Tree } from "./types.js";
+import { Node } from "./types.js"
 
 /**
-* Configuration options for tree traversal and node filtering.
-*/
+ * Configuration options for tree traversal and node filtering.
+ */
 interface Options {
   /**
    * Function to test each node in the tree.
@@ -11,36 +11,35 @@ interface Options {
    * @param depth - The depth of the current node in the tree (0-based)
    * @returns boolean indicating whether this is the target node
    */
-  testFn: (node: Node, parent?: Node | null, depth?: number) => boolean;
+  testFn: (node: Node, parent?: Node | null, depth?: number) => boolean
 
   /**
    * Whether to create a deep copy of the tree before traversing.
    * Set to false to return a reference to the parent node in the original tree.
    * @default true
    */
-  copy?: boolean;
+  copy?: boolean
 
   /**
    * Name of the array property in tree that stores the child nodes
    * @default "children"
    */
-  childrenProp?: string;
+  childrenKey?: string
 }
-
 
 /**
  * Finds the parent node of a node matching the given test condition in a tree structure.
- * 
+ *
  * @param tree - The root node of the tree to search
  * @param options - Configuration options for the search
  * @param options.testFn - Function to identify the target node
  * @param options.copy - Whether to create a deep copy of the tree before searching (defaults to true)
- * 
+ *
  * @returns The parent node of the matching node, or null if the matching node is the root
- * 
+ *
  * @throws {Error} If no testFn is provided in options
  * @throws {Error} If no node matching the test condition is found
- * 
+ *
  * @example
  * const tree = {
  *   value: 'root',
@@ -49,14 +48,13 @@ interface Options {
  *     children: []
  *   }]
  * };
- * 
+ *
  * // Find parent of node with value 'child'
  * const parent = getParent(tree, {
  *   testFn: (node) => node.value === 'child'
  * });
  */
-export function getParent(tree: Tree, options: Options): Node | null {
-
+export function getParent(tree: Node, options: Options): Node | null {
   // Check options
   if (!Object.hasOwn(options, "testFn")) {
     throw new Error("'testFn' must be given")
@@ -82,38 +80,40 @@ export function getParent(tree: Tree, options: Options): Node | null {
   return result
 }
 
-
 /**
  * Helper function that recursively traverses the tree to find a parent node.
- * 
+ *
  * @param tree - Current node being examined
  * @param options - Search configuration options
  * @param parent - Parent of the current node
  * @param depth - Current depth in the tree (0-based)
- * 
- * @returns 
+ *
+ * @returns
  * - The parent node if found in this subtree
  * - null if the matching node is found (indicating it's the target node)
  * - undefined if no matching node is found in this subtree
- * 
+ *
  * @internal
  * This is an internal helper function and should not be called directly.
  */
 function getParentHelper(
-  tree: Tree,
+  tree: Node,
   options: Options,
   parent: Node | null,
   depth: number
 ): Node | null | undefined {
-
   // Destructure options
-  const { testFn, childrenProp = "children" } = options
+  const { testFn, childrenKey = "children" } = options
 
   // Check for children nodes
-  if (!Object.hasOwn(tree, childrenProp)) {
-    throw new Error(`Children property '${ childrenProp }' is missing from at least one node`)
-  } else if (!Array.isArray(tree[childrenProp])) {
-    throw new Error(`Children property '${ childrenProp }' should be an array, but it is ${ tree[childrenProp] }`)
+  if (!Object.hasOwn(tree, childrenKey)) {
+    throw new Error(
+      `Children property '${childrenKey}' is missing from at least one node`
+    )
+  } else if (!Array.isArray(tree[childrenKey])) {
+    throw new Error(
+      `Children property '${childrenKey}' should be an array, but it is ${tree[childrenKey]}`
+    )
   }
 
   // If this is the matching node, return null
@@ -122,12 +122,12 @@ function getParentHelper(
   }
 
   // If any of this node's children passes the condition, return this node
-  if (tree[childrenProp].some((x: Tree) => testFn(x, parent, depth + 1))) {
+  if (tree[childrenKey].some((x: Node) => testFn(x, parent, depth + 1))) {
     return tree
   }
 
   // Recursively check each child subtree
-  for (const child of tree[childrenProp]) {
+  for (const child of tree[childrenKey]) {
     const parent = getParentHelper(child, options, tree, depth + 1)
     if (parent) return parent
   }

@@ -14,6 +14,7 @@ npm install treezy
 ```
 
 ## Example usage
+
 A _tree_ can be any JavaScript object that contains an array of children, where each child is another JavaScript object that matches the structure of its parent.
 
 For example, here's a tree with three nodes 👇
@@ -27,7 +28,7 @@ const myTree = {
   id: "A",
   children: [
     { id: "B", children: [] },
-    { id: "C", children: [] }
+    { id: "C", children: [] },
   ],
 }
 ```
@@ -35,30 +36,34 @@ const myTree = {
 `treezy` makes it easy to do things like...
 
 **Count the number of nodes in the tree**
+
 ```js
 import { getSize } from "treezy"
 
-getSize(myTree) 
+getSize(myTree)
 // Returns: 3
 ```
 
 **Check if the tree contains at least one node with `id` equal to "Q"**
+
 ```js
 import { contains } from "treezy"
 
-contains(myTree, { testFn: (x) => x.id === "Q" }) 
+contains(myTree, { testFn: (x) => x.id === "Q" })
 // Returns: false
 ```
 
 **Extract the subtree starting at the node with `id` equal to "B"**
+
 ```js
 import { getSubtree } from "treezy"
 
-getSubtree(myTree, { testFn: (x) => x.id === "B" }) 
+getSubtree(myTree, { testFn: (x) => x.id === "B" })
 // Returns: { id: "B", children: [] }
 ```
 
 ## Notes
+
 - By default, `treezy` functions never modify their inputs by reference
 - `treezy` expects every node in a tree to include an array with child nodes
 - `treezy` always scans in depth-first search, pre-order
@@ -66,6 +71,7 @@ getSubtree(myTree, { testFn: (x) => x.id === "B" })
 - The parent of a root node is `null`
 
 ## API
+
 - **`apply(tree, options)`** - apply some function to nodes in a tree
 - **`bifurcate(tree, options)`** - split a tree into two subtrees
 - **`contains(tree, options)`** - check if a tree contains a node that passes some test
@@ -82,12 +88,13 @@ getSubtree(myTree, { testFn: (x) => x.id === "B" })
 All functions come with an `options` parameter that let you specify things such as
 
 - `copy`: should the input tree be copied prior to modification?
-- `childrenProp`: name of the array property in the tree storing child nodes
+- `childrenKey`: name of the array property in the tree storing child nodes
 - `testFn`: a function applied to each node, to test whether it matches some criteria
 
 See each function's type definitions for its comprehensive documentation.
 
 ## Examples
+
 Suppose you have data for a comment thread on a YouTube video..
 
 ```js
@@ -118,12 +125,13 @@ const comment = {
           replies: [],
         },
       ],
-    }
+    },
   ],
 }
 ```
 
 ### How do I count the total number of comments?
+
 ```js
 import { getSize } from "treezy"
 
@@ -131,6 +139,7 @@ getSize(comment) // 4
 ```
 
 ### How do I count the number of comments by a particular user?
+
 ```js
 import { getSize } from "treezy"
 
@@ -138,6 +147,7 @@ getSize(comment, { testFn: (node) => node.userId === 489294 }) // 2
 ```
 
 ### How do I determine the max number of likes given to any single comment?
+
 ```js
 import { reduce } from "treezy"
 
@@ -146,6 +156,7 @@ reduce(comment, { reduceFn: reducer, initialVal: 0 }) // 3
 ```
 
 ### How do I flatten the comments into a 1-D array?
+
 ```js
 import { getValues } from "treezy"
 
@@ -153,6 +164,7 @@ getValues(comment) // [{id: 234424, ...}, {id: 248210, ...}, ...]
 ```
 
 ### How do I retrieve all the comment values?
+
 ```js
 import { getValues } from "treezy"
 
@@ -161,6 +173,7 @@ getValues(comment, { getFn: (node) => node.text })
 ```
 
 ### How do I remove comments which are replies to replies, or deeper?
+
 ```js
 import { prune } from "treezy"
 
@@ -170,11 +183,7 @@ prune(comment, { testFn: (node, parent, depth) => depth >= 2 })
 <!-- Definitions -->
 
 [downloads-badge]: https://img.shields.io/npm/dm/treezy.svg
-
 [downloads]: https://www.npmjs.com/package/treezy
-
 [size-badge]: https://img.shields.io/badge/dynamic/json?label=minzipped%20size&query=$.size.compressedSize&url=https://deno.bundlejs.com/?q=treezy
-
 [size]: https://bundlejs.com/?q=treezy
-
 [npm]: https://docs.npmjs.com/cli/install
