@@ -3,7 +3,10 @@ import { Node } from "./types.js"
 /**
  * Configuration options for pruning nodes from a tree
  */
-interface Options {
+interface Options<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {}
+> {
   /**
    * Function to identify nodes that should be removed
    * @param node - The current node being tested
@@ -11,7 +14,11 @@ interface Options {
    * @param depth - The depth of the current node in the tree (0-based)
    * @returns boolean indicating whether this node should be removed
    */
-  testFn: (node: Node, parent?: Node | null, depth?: number) => boolean
+  testFn: (
+    node: Node<TChildrenKey, TExtraProps>,
+    parent?: Node<TChildrenKey, TExtraProps> | null,
+    depth?: number
+  ) => boolean
 
   /**
    * Whether to create a deep copy of the tree before modifying.
@@ -24,7 +31,7 @@ interface Options {
    * Name of the array property in tree that stores the child nodes
    * @default "children"
    */
-  childrenKey?: string
+  childrenKey?: TChildrenKey
 }
 
 /**
@@ -72,25 +79,20 @@ interface Options {
  *   testFn: node => node.id === 1
  * }); // Returns null
  */
-export function prune(tree: Node, options: Options): Node | null {
-  // Check options
-  if (!Object.hasOwn(options, "testFn")) {
-    throw new Error("'testFn' must be given")
-  }
-
-  // Destructure options
-  const { copy = true } = options
-
-  // Call the helper function
-  const result = pruneHelper(
-    copy ? structuredClone(tree) : tree,
-    options ?? {},
-    null,
-    0
-  )
-
-  // Return
-  return result
+export function prune<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(tree: TNode, options: Options<TChildrenKey, TExtraProps>): TNode | null {
+  const node = options?.copy === false ? tree : structuredClone(tree)
+  return pruneHelper(node, null, 0, {
+    childrenKey: "children" as TChildrenKey,
+    copy: false,
+    ...options,
+  })
 }
 
 /**
@@ -105,38 +107,35 @@ export function prune(tree: Node, options: Options): Node | null {
  * @internal
  * This is an internal helper function and should not be called directly.
  */
-function pruneHelper(
-  tree: Node,
-  options: Options,
-  parent: Node | null,
-  depth: number
-): Node | null {
-  // Destructure options
-  const { testFn, childrenKey = "children" } = options
-
-  // Check for children nodes
-  if (!Object.hasOwn(tree, childrenKey)) {
-    throw new Error(
-      `Children property '${childrenKey}' is missing from at least one node`
-    )
-  } else if (!Array.isArray(tree[childrenKey])) {
-    throw new Error(`Children property '${childrenKey}' should be an array`)
-  }
+function pruneHelper<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(
+  node: TNode,
+  parent: TNode | null,
+  depth: number,
+  options: Required<Options<TChildrenKey, TExtraProps>>
+): TNode | null {
+  const { testFn, childrenKey } = options
 
   // Check if this node passes testFn
-  if (testFn(tree, parent, depth)) {
+  if (testFn(node, parent, depth)) {
     return null
   }
 
   // Prune each child of this node
-  for (const [idx, child] of tree[childrenKey].reverse().entries()) {
-    const newChild = pruneHelper(child, options, tree, depth + 1)
+  for (const [idx, child] of node[childrenKey].reverse().entries()) {
+    const newChild = pruneHelper(child, node, depth + 1, options)
 
     // If the returned value is null, delete the child from tree[childrenKey]
     if (newChild === null) {
-      tree[childrenKey].splice(idx, 1)
+      node[childrenKey].splice(idx, 1)
     }
   }
 
-  return tree
+  return node
 }

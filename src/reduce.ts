@@ -3,7 +3,10 @@ import { Node } from "./types.js"
 /**
  * Configuration options for reducing a tree to a value.
  */
-interface Options {
+interface Options<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {}
+> {
   /**
    * Function to execute on each node of the tree
    * @param node - Current node being processed
@@ -13,9 +16,9 @@ interface Options {
    * @returns The accumulated value after processing the current node
    */
   reduceFn: (
-    node: Node,
+    node: Node<TChildrenKey, TExtraProps>,
     initialVal: any,
-    parent?: Node | null,
+    parent?: Node<TChildrenKey, TExtraProps> | null,
     depth?: number
   ) => any
 
@@ -34,7 +37,7 @@ interface Options {
    * Name of the array property in tree that stores the child nodes
    * @default "children"
    */
-  childrenKey?: string
+  childrenKey?: TChildrenKey
 }
 
 /**
@@ -73,28 +76,19 @@ interface Options {
  * }); // Returns 6
  * ```
  */
-export function reduce(tree: Node, options: Options): any {
-  // Check options
-  if (!Object.hasOwn(options, "reduceFn")) {
-    throw new Error("'reduceFn' must be given")
-  }
-  if (!Object.hasOwn(options, "initialVal")) {
-    throw new Error("'initialVal' must be given")
-  }
-
-  // Destructure options
-  const { copy = true } = options
-
-  // Call the helper function
-  const result = reduceHelper(
-    copy ? structuredClone(tree) : tree,
-    options,
-    null,
-    0
-  )
-
-  // Return
-  return result
+export function reduce<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(tree: TNode, options: Options<TChildrenKey, TExtraProps>): any {
+  return reduceHelper(options.copy ? structuredClone(tree) : tree, null, 0, {
+    childrenKey: "children" as TChildrenKey,
+    copy: false,
+    ...options,
+  })
 }
 
 /**
@@ -107,30 +101,30 @@ export function reduce(tree: Node, options: Options): any {
  * @param depth - Current depth in the tree
  * @returns Accumulated value after processing the current subtree
  */
-function reduceHelper(
-  tree: Node,
-  options: Options,
-  parent: Node | null,
-  depth: number
+function reduceHelper<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(
+  tree: TNode,
+  parent: TNode | null,
+  depth: number,
+  options: Required<Options<TChildrenKey, TExtraProps>>
 ): any {
-  // Destructure options
   const { reduceFn, initialVal, childrenKey = "children" } = options
-
-  // Check for children nodes
-  if (!Object.hasOwn(tree, childrenKey)) {
-    throw new Error(
-      `Children property '${childrenKey}' is missing from at least one node`
-    )
-  } else if (!Array.isArray(tree[childrenKey])) {
-    throw new Error(`Children property '${childrenKey}' should be an array`)
-  }
 
   // Apply the reduceFn to this node
   let val = reduceFn(tree, initialVal, parent, depth)
 
   // Recursion
   for (const child of tree[childrenKey]) {
-    val = reduceHelper(child, { reduceFn, initialVal: val }, tree, depth + 1)
+    val = reduceHelper(child, tree, depth + 1, {
+      ...options,
+      initialVal: val,
+    })
   }
 
   return val

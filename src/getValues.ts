@@ -127,20 +127,16 @@ export function getValues<
     TExtraProps
   >
 >(tree: TNode, options?: Options<TChildrenKey, TExtraProps>): any[] {
-  const result = getValuesHelper<TChildrenKey, TExtraProps>(
-    options?.copy ? structuredClone(tree) : tree,
-    null,
-    0,
-    {
-      childrenKey: "children" as TChildrenKey,
-      copy: false,
-      getFn: (x: Node<TChildrenKey, TExtraProps>) => x,
-      testFn: () => true,
-      filter: "matches",
-      firstOnly: false,
-      ...options,
-    }
-  )
+  const node = options?.copy === false ? tree : structuredClone(tree)
+  const result = getValuesHelper<TChildrenKey, TExtraProps>(node, null, 0, {
+    childrenKey: "children" as TChildrenKey,
+    copy: false,
+    getFn: (x: Node<TChildrenKey, TExtraProps>) => x,
+    testFn: () => true,
+    filter: "matches",
+    firstOnly: false,
+    ...options,
+  })
 
   // Return
   return result ?? []

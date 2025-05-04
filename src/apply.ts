@@ -3,14 +3,21 @@ import { Node } from "./types.js"
 /**
  * Configuration options for tree traversal, modification, and node filtering.
  */
-interface Options {
+interface Options<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {}
+> {
   /**
    * Function to apply to matching nodes in the tree.
    * @param node - The current node being modified
    * @param parent - The parent of the current node (if any)
    * @param depth - The depth of the current node in the tree
    */
-  applyFn: (node: Node, parent?: Node | null, depth?: number) => any
+  applyFn: (
+    node: Node<TChildrenKey, TExtraProps>,
+    parent?: Node<TChildrenKey, TExtraProps> | null,
+    depth?: number
+  ) => any
 
   /**
    * Function to test each node during traversal.
@@ -20,7 +27,11 @@ interface Options {
    * @returns True if the node should be processed, false otherwise
    * @default () => true
    */
-  testFn?: (node: Node, parent?: Node | null, depth?: number) => boolean
+  testFn?: (
+    node: Node<TChildrenKey, TExtraProps>,
+    parent?: Node<TChildrenKey, TExtraProps> | null,
+    depth?: number
+  ) => boolean
 
   /**
    * Determines which nodes to apply the function to relative to matching nodes.
@@ -55,7 +66,7 @@ interface Options {
    * Name of the array property in tree that stores the child nodes
    * @default "children"
    */
-  childrenKey?: string
+  childrenKey?: TChildrenKey
 }
 
 /**
@@ -90,21 +101,24 @@ interface Options {
  *   filter: "matches"
  * });
  */
-export function apply(tree: Node, options: Options): Node {
-  // Check options
-  if (!Object.hasOwn(options, "applyFn")) {
-    throw new Error("'applyFn' must be given")
-  }
-
-  // Destructure options
-  const { copy = true } = options
-
-  // Call the helper function
-  const result = copy ? structuredClone(tree) : tree
-  applyHelper(result, options, null, 0)
-
-  // Return
-  return result
+export function apply<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(tree: TNode, options: Options<TChildrenKey, TExtraProps>): TNode {
+  const node = options?.copy === false ? tree : structuredClone(tree)
+  applyHelper<TChildrenKey, TExtraProps>(node, null, 0, {
+    childrenKey: "children" as TChildrenKey,
+    copy: false,
+    testFn: () => true,
+    filter: "matches",
+    firstOnly: false,
+    ...options,
+  })
+  return node
 }
 
 /**
@@ -118,40 +132,32 @@ export function apply(tree: Node, options: Options): Node {
  *
  * @private This is an internal helper function not meant for direct use
  */
-function applyHelper(
-  tree: Node,
-  options: Options,
-  parent: Node | null,
-  depth: number
+function applyHelper<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(
+  node: TNode,
+  parent: TNode | null,
+  depth: number,
+  options: Required<Options<TChildrenKey, TExtraProps>>
 ): boolean {
-  // Destructure options
-  const {
-    applyFn,
-    testFn = () => true,
-    filter = "matches",
-    firstOnly = false,
-    childrenKey = "children",
-  } = options
+  const { applyFn, testFn, filter, firstOnly, childrenKey } = options
 
-  // Check for children nodes
-  if (!Object.hasOwn(tree, childrenKey)) {
-    throw new Error(
-      `Children property '${childrenKey}' is missing from at least one node`
-    )
-  } else if (!Array.isArray(tree[childrenKey])) {
-    throw new Error(`Children property '${childrenKey}' should be an array`)
-  }
-
-  if (testFn(tree)) {
+  if (testFn(node)) {
     // The current node passes the test function
 
+    // Exit early?
     if (filter === "ancestors") {
       return true
     }
 
     // Apply the modifier function
     if (filter !== "descendants") {
-      applyFn(tree, parent, depth)
+      applyFn(node, parent, depth)
     }
 
     // Exit early?
@@ -163,17 +169,16 @@ function applyHelper(
     }
 
     // Iterate over each child of the current node
-    for (const child of tree[childrenKey]) {
+    for (const child of node[childrenKey]) {
       // Recursively call applyHelper on this child
       if (["descendants", "inclusiveDescendants"].includes(filter)) {
-        applyHelper(
-          child,
-          { ...options, testFn: () => true, filter: "inclusiveDescendants" },
-          tree,
-          depth + 1
-        )
+        applyHelper(child, node, depth + 1, {
+          ...options,
+          testFn: () => true,
+          filter: "inclusiveDescendants",
+        })
       } else if (filter === "matches") {
-        applyHelper(child, options, tree, depth + 1)
+        applyHelper(child, node, depth + 1, options)
       }
     }
 
@@ -184,9 +189,9 @@ function applyHelper(
     let foundMatch = false
 
     // Iterate over each child of the current node
-    for (const child of tree[childrenKey]) {
+    for (const child of node[childrenKey]) {
       // Recursively call applyHelper on this child
-      const subtree = applyHelper(child, options, tree, depth + 1)
+      const subtree = applyHelper(child, node, depth + 1, options)
 
       // If there was a match..
       if (subtree) {

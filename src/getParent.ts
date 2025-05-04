@@ -3,7 +3,10 @@ import { Node } from "./types.js"
 /**
  * Configuration options for tree traversal and node filtering.
  */
-interface Options {
+interface Options<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {}
+> {
   /**
    * Function to test each node in the tree.
    * @param node - The current node being tested
@@ -11,7 +14,11 @@ interface Options {
    * @param depth - The depth of the current node in the tree (0-based)
    * @returns boolean indicating whether this is the target node
    */
-  testFn: (node: Node, parent?: Node | null, depth?: number) => boolean
+  testFn: (
+    node: Node<TChildrenKey, TExtraProps>,
+    parent?: Node<TChildrenKey, TExtraProps> | null,
+    depth?: number
+  ) => boolean
 
   /**
    * Whether to create a deep copy of the tree before traversing.
@@ -24,7 +31,7 @@ interface Options {
    * Name of the array property in tree that stores the child nodes
    * @default "children"
    */
-  childrenKey?: string
+  childrenKey?: TChildrenKey
 }
 
 /**
@@ -54,21 +61,24 @@ interface Options {
  *   testFn: (node) => node.value === 'child'
  * });
  */
-export function getParent(tree: Node, options: Options): Node | null {
-  // Check options
-  if (!Object.hasOwn(options, "testFn")) {
-    throw new Error("'testFn' must be given")
-  }
-
-  // Destructure options
-  const { copy = true } = options
-
-  // Call the helper
-  const result = getParentHelper(
-    copy ? structuredClone(tree) : tree,
-    options,
+export function getParent<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(tree: TNode, options: Options<TChildrenKey, TExtraProps>): TNode | null {
+  const node = options?.copy === false ? tree : structuredClone(tree)
+  const result = getParentHelper<TChildrenKey, TExtraProps, TNode>(
+    node,
     null,
-    0
+    0,
+    {
+      childrenKey: "children" as TChildrenKey,
+      copy: false,
+      ...options,
+    }
   )
 
   // If a matching node could not be found, throw an error
@@ -96,39 +106,39 @@ export function getParent(tree: Node, options: Options): Node | null {
  * @internal
  * This is an internal helper function and should not be called directly.
  */
-function getParentHelper(
-  tree: Node,
-  options: Options,
-  parent: Node | null,
-  depth: number
-): Node | null | undefined {
-  // Destructure options
-  const { testFn, childrenKey = "children" } = options
-
-  // Check for children nodes
-  if (!Object.hasOwn(tree, childrenKey)) {
-    throw new Error(
-      `Children property '${childrenKey}' is missing from at least one node`
-    )
-  } else if (!Array.isArray(tree[childrenKey])) {
-    throw new Error(
-      `Children property '${childrenKey}' should be an array, but it is ${tree[childrenKey]}`
-    )
-  }
+function getParentHelper<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(
+  node: TNode,
+  parent: TNode | null,
+  depth: number,
+  options: Required<Options<TChildrenKey, TExtraProps>>
+): TNode | null | undefined {
+  const { childrenKey, testFn } = options
 
   // If this is the matching node, return null
-  if (testFn(tree, parent, depth)) {
+  if (testFn(node, parent, depth)) {
     return null
   }
 
   // If any of this node's children passes the condition, return this node
-  if (tree[childrenKey].some((x: Node) => testFn(x, parent, depth + 1))) {
-    return tree
+  if (node[childrenKey].some((x) => testFn(x, parent, depth + 1))) {
+    return node
   }
 
   // Recursively check each child subtree
-  for (const child of tree[childrenKey]) {
-    const parent = getParentHelper(child, options, tree, depth + 1)
+  for (const child of node[childrenKey]) {
+    const parent = getParentHelper<TChildrenKey, TExtraProps, TNode>(
+      child as TNode,
+      node,
+      depth + 1,
+      options
+    )
     if (parent) return parent
   }
 }

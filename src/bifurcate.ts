@@ -3,7 +3,10 @@ import { Node } from "./types.js"
 /**
  * Configuration options for tree traversal and node filtering.
  */
-interface Options {
+interface Options<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {}
+> {
   /**
    * Function to test each node during traversal.
    * @param node - The current node being tested
@@ -12,7 +15,11 @@ interface Options {
    * @returns True if the node passes the test, false otherwise
    * @default () => true
    */
-  testFn: (node: Node, parent?: Node | null, depth?: number) => boolean
+  testFn: (
+    node: Node<TChildrenKey, TExtraProps>,
+    parent?: Node<TChildrenKey, TExtraProps> | null,
+    depth?: number
+  ) => boolean
 
   /**
    * Whether to create a deep copy of the tree before modifying.
@@ -25,17 +32,20 @@ interface Options {
    * Name of the array property in tree that stores the child nodes
    * @default "children"
    */
-  childrenKey?: string
+  childrenKey?: TChildrenKey
 }
 
 /**
  * Result of a tree bifurcation operation.
  */
-interface Result {
+interface Result<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {}
+> {
   /** The remaining tree after removing the matching subtree */
-  tree: Node | null
+  tree: Node<TChildrenKey, TExtraProps> | null
   /** The first subtree that matches the test criteria */
-  subtree: Node | null
+  subtree: Node<TChildrenKey, TExtraProps> | null
 }
 
 /**
@@ -63,20 +73,23 @@ interface Result {
  * // result.subtree will be the node with value 'B'
  * // result.tree will be tree excluding the node with value 'B'
  */
-export function bifurcate(tree: Node, options: Options): Result {
-  // Destructure options
-  const { copy = true } = options ?? {}
-
-  // Call the helper function
-  const result = bifurcateHelper(
-    copy ? structuredClone(tree) : tree,
-    options,
-    null,
-    0
-  )
-
-  // Return
-  return result
+export function bifurcate<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(
+  tree: TNode,
+  options: Options<TChildrenKey, TExtraProps>
+): Result<TChildrenKey, TExtraProps> {
+  const node = options?.copy === false ? tree : structuredClone(tree)
+  return bifurcateHelper<TChildrenKey, TExtraProps>(node, null, 0, {
+    childrenKey: "children" as TChildrenKey,
+    copy: false,
+    ...options,
+  })
 }
 
 /**
@@ -90,40 +103,36 @@ export function bifurcate(tree: Node, options: Options): Result {
  *
  * @private This is an internal helper function not meant for direct use
  */
-function bifurcateHelper(
-  tree: Node,
-  options: Options,
-  parent: Node | null,
-  depth: number
-): Result {
+function bifurcateHelper<
+  TChildrenKey extends string = "children",
+  TExtraProps extends Record<string, unknown> = {},
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
+>(
+  node: TNode,
+  parent: TNode | null,
+  depth: number,
+  options: Required<Options<TChildrenKey, TExtraProps>>
+): Result<TChildrenKey, TExtraProps> {
   // Destructure options
-  const { testFn, childrenKey = "children" } = options
+  const { testFn, childrenKey } = options
 
-  // Check for children nodes
-  if (!Object.hasOwn(tree, childrenKey)) {
-    throw new Error(
-      `Children property '${childrenKey}' is missing from at least one node`
-    )
-  } else if (!Array.isArray(tree[childrenKey])) {
-    throw new Error(`Children property '${childrenKey}' should be an array`)
-  }
-
-  if (testFn(tree, parent, depth)) {
+  if (testFn(node, parent, depth)) {
     // This node is a match
-
-    return { tree: null, subtree: tree }
+    return { tree: null, subtree: node }
   } else {
     // This node is not a match
 
     // Check each child
-    for (const [idx, child] of tree[childrenKey].entries()) {
-      const result = bifurcateHelper(child, options, tree, depth + 1)
+    for (const [idx, child] of node[childrenKey].entries()) {
+      const result = bifurcateHelper(child, node, depth + 1, options)
 
       // If this child subtree was bifurcated, return
       if (result.subtree) {
-        tree[childrenKey].splice(idx, 1)
-        result.tree = tree
-        return result
+        node[childrenKey].splice(idx, 1)
+        return { ...result, tree: node }
       }
     }
 
