@@ -101,9 +101,9 @@ export function bifurcate<
   | { parent: TInputNode; child: null } {
   // Resolve defaults
   const childrenKey: TChildrenKey =
-    options?.childrenKey ?? ("children" as TChildrenKey)
+    options.childrenKey ?? ("children" as TChildrenKey)
   const testFn = options.testFn
-  const copy = options?.copy ?? false
+  const copy = options.copy ?? false
 
   // Prepare options for the internal recursive helper.
   // The 'testFn' passed to the helper is the one provided by the user (or the default),

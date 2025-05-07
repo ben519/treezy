@@ -91,10 +91,10 @@ export function apply<
 ): TInputNode {
   // Resolve defaults
   const childrenKey: TChildrenKey =
-    options?.childrenKey ?? ("children" as TChildrenKey)
+    options.childrenKey ?? ("children" as TChildrenKey)
   const applyFn = options.applyFn
-  const testFn = options?.testFn ?? (() => true)
-  const copy = options?.copy ?? false
+  const testFn = options.testFn ?? (() => true)
+  const copy = options.copy ?? false
 
   // Prepare options for the internal recursive helper.
   // The 'testFn' passed to the helper is the one provided by the user (or the default),
