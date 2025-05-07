@@ -5,7 +5,11 @@ import { tree1, tree2 } from "./trees"
 test("Confirm contains() finds matching nodes", () => {
   const testFn = (x: Node) => x.id === 1
 
-  expect(contains(tree1, { testFn })).toBe(true)
+  expect(
+    contains(tree1, {
+      testFn: (x: Node) => x.id === 1,
+    })
+  ).toBe(true)
   expect(contains(tree2, { testFn })).toBe(true)
 })
 

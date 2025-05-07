@@ -91,11 +91,7 @@ export function getSize<
   // We assert its type to match what `getSizeHelper` expects for its `TCurrentNode`.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
-    testFn: testFn as (
-      node: TInputNode,
-      parent: TInputNode | null,
-      depth: number
-    ) => boolean,
+    testFn,
   }
 
   // Initial call to the recursive helper. TInputNode is the type of the root.
@@ -126,8 +122,9 @@ function getSizeHelper<
   // The type assertion here is justified by these definitions.
   const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
 
+  // If this is a leaf node...
   if (!childrenArray || childrenArray.length === 0) {
-    return count // Leaf node (or no children matching key) or filtered out
+    return count
   }
 
   // Recursively count descendants.
