@@ -1,184 +1,255 @@
 import { apply } from "../src/apply"
-import { Node } from "../src/types"
-import { tree1, tree2, tree5 } from "./trees"
+import { Node, UniformNode } from "../src/types"
 
-test("apply function to the entire tree", () => {
-  const tree1Copy = structuredClone(tree1)
-  const tree1Inplace = structuredClone(tree1)
+describe("apply function", () => {
+  // Basic test with a simple tree
+  test("basic functionality with generic Node", () => {
+    const tree: Node = {
+      value: 1,
+      children: [{ value: 2 }, { value: 3, children: [{ value: 4 }] }],
+    }
 
-  const tree2Copy = structuredClone(tree2)
-  const tree2Inplace = structuredClone(tree2)
-
-  const tree5Copy = structuredClone(tree5)
-  const tree5Inplace = structuredClone(tree5)
-
-  const res1 = { id: 1, foo: "yo", children: [] }
-  expect(
-    apply<"children", any>(tree1Copy, {
-      applyFn: (x) => (x.foo = "yo"),
-    })
-  ).toEqual(res1)
-  expect(
-    apply<"children", any>(tree1Inplace, {
-      applyFn: (x) => (x["foo"] = "yo"),
-      copy: false,
-    })
-  ).toEqual(res1)
-  expect(tree1Inplace).toEqual(res1)
-  expect(tree1Copy).toEqual(tree1)
-
-  const res2 = {
-    id: 1,
-    foo: "yo",
-    children: [
-      { id: 2, foo: "yo", children: [] },
-      { id: 3, foo: "yo", children: [] },
-    ],
-  }
-  expect(
-    apply<"children", any>(tree2Copy, { applyFn: (x) => (x["foo"] = "yo") })
-  ).toEqual(res2)
-  expect(
-    apply<"children", any>(tree2Inplace, {
-      applyFn: (x) => (x["foo"] = "yo"),
-      copy: false,
-    })
-  ).toEqual(res2)
-  expect(tree2Inplace).toEqual(res2)
-  expect(tree2Copy).toEqual(tree2)
-
-  const res3 = {
-    id: 1,
-    foo: "yo",
-    children: [
-      {
-        id: 2,
-        foo: "yo",
-        children: [
-          { id: 6, foo: "yo", children: [] },
-          { id: 7, foo: "yo", children: [] },
-        ],
+    const multiplier = 2
+    const result = apply(tree, {
+      applyFn: (node) => {
+        if (typeof node.value === "number") {
+          node.value = node.value * multiplier
+        }
       },
-      {
-        id: 3,
-        foo: "yo",
-        children: [{ id: 8, foo: "yo", children: [] }],
-      },
-      {
-        id: 4,
-        foo: "yo",
-        children: [
-          { id: 9, foo: "yo", children: [] },
-          {
-            id: 10,
-            foo: "yo",
-            children: [{ id: 11, foo: "yo", children: [] }],
-          },
-        ],
-      },
-    ],
-  }
-  expect(
-    apply<"children", any>(tree5Copy, { applyFn: (x) => (x["foo"] = "yo") })
-  ).toEqual(res3)
-  expect(
-    apply<"children", any>(tree5Inplace, {
-      applyFn: (x) => (x["foo"] = "yo"),
-      copy: false,
     })
-  ).toEqual(res3)
-  expect(tree5Inplace).toEqual(res3)
-  expect(tree5Copy).toEqual(tree5)
-})
 
-test("Use apply() to insert a descriptive path to each tree", () => {
-  const tree1Copy = structuredClone(tree1)
-  const tree2Copy = structuredClone(tree2)
-  const tree5Copy = structuredClone(tree5)
-
-  const makePath = (
-    x: Node<"children", { id: number; path?: string }>,
-    p?: Node<"children", { id: number; path?: string }> | null,
-    d?: number
-  ): string => {
-    return (x["path"] = p && "path" in p ? p.path + " > " + x.id : "" + x.id)
-  }
-
-  expect(apply<"children", any>(tree1Copy, { applyFn: makePath })).toEqual({
-    id: 1,
-    path: "1",
-    children: [],
+    expect(result.value).toBe(2) // 1 * 2
+    expect(result.children?.[0].value).toBe(4) // 2 * 2
+    expect(result.children?.[1].value).toBe(6) // 3 * 2
+    expect(result.children?.[1].children?.[0].value).toBe(8) // 4 * 2
   })
 
-  expect(apply<"children", any>(tree2Copy, { applyFn: makePath })).toEqual({
-    id: 1,
-    path: "1",
-    children: [
-      { id: 2, path: "1 > 2", children: [] },
-      { id: 3, path: "1 > 3", children: [] },
-    ],
+  // Test with UniformNode type
+  test("functionality with UniformNode", () => {
+    interface MyNodeProps {
+      name: string
+      count: number
+    }
+
+    const tree: UniformNode<"items", MyNodeProps> = {
+      name: "root",
+      count: 0,
+      items: [
+        { name: "item1", count: 1 },
+        {
+          name: "item2",
+          count: 2,
+          items: [{ name: "subitem1", count: 3 }],
+        },
+      ],
+    }
+
+    const result = apply(tree, {
+      applyFn: (node) => {
+        node.count += 10
+      },
+      childrenKey: "items",
+    })
+
+    expect(result.count).toBe(10) // 0 + 10
+    expect(result.items?.[0].count).toBe(11) // 1 + 10
+    expect(result.items?.[1].count).toBe(12) // 2 + 10
+    expect(result.items?.[1].items?.[0].count).toBe(13) // 3 + 10
   })
 
-  expect(apply(tree5Copy, { applyFn: makePath })).toEqual({
-    id: 1,
-    path: "1",
-    children: [
-      {
-        id: 2,
-        path: "1 > 2",
-        children: [
-          { id: 6, path: "1 > 2 > 6", children: [] },
-          { id: 7, path: "1 > 2 > 7", children: [] },
-        ],
+  // Test with a custom test function
+  test("test function filters nodes to be modified", () => {
+    const tree: Node = {
+      value: 1,
+      children: [{ value: 2 }, { value: 3, children: [{ value: 4 }] }],
+    }
+
+    const result = apply(tree, {
+      applyFn: (node) => {
+        if (typeof node.value === "number") {
+          node.value = node.value * 2
+        }
       },
-      {
-        id: 3,
-        path: "1 > 3",
-        children: [{ id: 8, path: "1 > 3 > 8", children: [] }],
-      },
-      {
-        id: 4,
-        path: "1 > 4",
-        children: [
-          { id: 9, path: "1 > 4 > 9", children: [] },
-          {
-            id: 10,
-            path: "1 > 4 > 10",
-            children: [{ id: 11, path: "1 > 4 > 10 > 11", children: [] }],
-          },
-        ],
-      },
-    ],
+      testFn: (node) => typeof node.value === "number" && node.value > 2,
+    })
+
+    expect(result.value).toBe(1) // Not modified (value <= 2)
+    expect(result.children?.[0].value).toBe(2) // Not modified (value <= 2)
+    expect(result.children?.[1].value).toBe(6) // Modified: 3 * 2
+    expect(result.children?.[1].children?.[0].value).toBe(8) // Modified: 4 * 2
   })
 
-  expect(tree1Copy).toEqual(tree1)
-  expect(tree2Copy).toEqual(tree2)
-  expect(tree5Copy).toEqual(tree5)
-})
+  // Test with depth parameter
+  test("depth parameter works correctly", () => {
+    const tree: Node = {
+      level: 0,
+      children: [
+        { level: 0 },
+        {
+          level: 0,
+          children: [{ level: 0 }],
+        },
+      ],
+    }
 
-test("apply function to matching nodes, but there are no matches", () => {
-  const tree1Copy = structuredClone(tree1)
-
-  expect(
-    apply<"children", { id: number; foo?: string }>(tree1Copy, {
-      testFn: (x) => false,
-      applyFn: (x) => (x["foo"] = "yo"),
-      firstOnly: true,
+    const result = apply(tree, {
+      applyFn: (node, _, depth = 0) => {
+        node.level = depth
+      },
     })
-  ).toEqual({ id: 1, children: [] })
 
-  expect(tree1Copy).toEqual(tree1)
-})
+    expect(result.level).toBe(0)
+    expect(result.children?.[0].level).toBe(1)
+    expect(result.children?.[1].level).toBe(1)
+    expect(result.children?.[1].children?.[0].level).toBe(2)
+  })
 
-test("apply to the first matching node", () => {
-  const tree1Copy = structuredClone(tree1)
+  // Test with parent parameter
+  test("parent parameter works correctly", () => {
+    const tree: Node = {
+      id: "root",
+      parentId: null,
+      children: [
+        { id: "child1", parentId: null },
+        {
+          id: "child2",
+          parentId: null,
+          children: [{ id: "grandchild", parentId: null }],
+        },
+      ],
+    }
 
-  expect(
-    apply<"children", { id: number; foo?: string }>(tree1Copy, {
-      testFn: (x) => x.id === 1,
-      applyFn: (x) => (x["foo"] = "yo"),
+    const result = apply(tree, {
+      applyFn: (node, parent) => {
+        node.parentId = parent ? parent.id : null
+      },
     })
-  ).toEqual({ id: 1, foo: "yo", children: [] })
 
-  expect(tree1Copy).toEqual(tree1)
+    expect(result.parentId).toBeNull()
+    expect(result.children?.[0].parentId).toBe("root")
+    expect(result.children?.[1].parentId).toBe("root")
+    expect(result.children?.[1].children?.[0].parentId).toBe("child2")
+  })
+
+  // Test with copy option
+  test("copy option creates a deep clone", () => {
+    const tree: Node = {
+      value: 1,
+      children: [{ value: 2 }, { value: 3, children: [{ value: 4 }] }],
+    }
+
+    const originalTree = structuredClone(tree)
+
+    const result = apply(tree, {
+      applyFn: (node) => {
+        if (typeof node.value === "number") {
+          node.value = node.value * 2
+        }
+      },
+      copy: true,
+    })
+
+    // Check original tree remains unchanged
+    expect(tree).toEqual(originalTree)
+
+    // Check result tree is modified
+    expect(result.value).toBe(2)
+    expect(result.children?.[0].value).toBe(4)
+    expect(result.children?.[1].value).toBe(6)
+    expect(result.children?.[1].children?.[0].value).toBe(8)
+  })
+
+  // Test with custom children key
+  test("custom children key works correctly", () => {
+    const tree = {
+      value: "root",
+      items: [
+        { value: "item1" },
+        {
+          value: "item2",
+          items: [{ value: "subitem" }],
+        },
+      ],
+    }
+
+    const result = apply(tree, {
+      applyFn: (node) => {
+        node.value = `modified-${node.value}`
+      },
+      childrenKey: "items",
+    })
+
+    expect(result.value).toBe("modified-root")
+    expect(result.items?.[0].value).toBe("modified-item1")
+    expect(result.items?.[1].value).toBe("modified-item2")
+    expect(result.items?.[1].items?.[0].value).toBe("modified-subitem")
+  })
+
+  // Test with empty tree
+  test("handles leaf nodes correctly", () => {
+    const tree: Node = {
+      value: "leaf",
+      // No children
+    }
+
+    const result = apply(tree, {
+      applyFn: (node) => {
+        node.processed = true
+      },
+    })
+
+    expect(result.value).toBe("leaf")
+    expect(result.processed).toBe(true)
+  })
+
+  // Test with empty children array
+  test("handles empty children array", () => {
+    const tree: Node = {
+      value: "parent",
+      children: [], // Empty array
+    }
+
+    const result = apply(tree, {
+      applyFn: (node) => {
+        node.processed = true
+      },
+    })
+
+    expect(result.value).toBe("parent")
+    expect(result.processed).toBe(true)
+    expect(result.children).toEqual([])
+  })
+
+  // Test with complex nested structure
+  test("handles complex nested structure", () => {
+    const tree: Node = {
+      id: "root",
+      children: [
+        {
+          id: "branch1",
+          children: [
+            { id: "leaf1" },
+            {
+              id: "subbranch1",
+              children: [{ id: "leaf2" }, { id: "leaf3" }],
+            },
+          ],
+        },
+        {
+          id: "branch2",
+          children: [{ id: "leaf4" }],
+        },
+      ],
+    }
+
+    let nodeCount = 0
+
+    apply(tree, {
+      applyFn: () => {
+        nodeCount++
+      },
+    })
+
+    expect(nodeCount).toBe(8) // Total number of nodes in the tree
+  })
 })
