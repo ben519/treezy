@@ -58,3 +58,27 @@ export type UniformNode<
 > = TExtraProps & {
   [K in TChildrenKey]?: UniformNode<TChildrenKey, TExtraProps>[]
 }
+
+/**
+ * Represents a tree node structure with a unique identifier and optional children.
+ *
+ * This type is designed for creating tree-like data structures where each node:
+ * - Has a unique identifier of type TId (defaults to string)
+ * - Can contain any additional properties as key-value pairs
+ * - Can optionally contain children of the same node type
+ *
+ * @template TChildrenKey - The property name for the children array (defaults to "children")
+ * @template TIdKey - The property name for the identifier (defaults to "id")
+ * @template TId - The type of the identifier (defaults to string | number | symbol)
+ */
+export type NodeWithId<
+  TChildrenKey extends string = "children",
+  TIdKey extends string = "id",
+  TId = string | number | symbol
+> = {
+  [key: string]: unknown
+} & {
+  [K in TIdKey]: TId
+} & {
+  [K in TChildrenKey]?: NodeWithId<TChildrenKey, TIdKey, TId>[]
+}

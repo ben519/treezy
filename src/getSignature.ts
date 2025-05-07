@@ -1,14 +1,17 @@
-import { Node } from "./types.js"
+import { NodeWithId } from "./types.js"
 
 /**
  * Configuration options for signature generation
  */
-interface Options<TChildrenKey extends string = "children"> {
+interface Options<
+  TChildrenKey extends string = "children",
+  TIdKey extends string = "id"
+> {
   /**
    * Property name to use as the node identifier in the tree
    * Must exist on all nodes in the tree
    */
-  idKey: string
+  idKey?: TIdKey
 
   /**
    * Character used to open a group of child nodes
@@ -35,68 +38,62 @@ interface Options<TChildrenKey extends string = "children"> {
   childrenKey?: TChildrenKey
 }
 
-/**
- * Generates a string signature representation of a tree structure where each node's ID
- * is concatenated with its children's signatures in a nested format.
- *
- * @param tree - The tree structure to generate a signature for
- * @param options - Configuration options for generating the signature
- * @param options.idKey - The property name to use as the node identifier
- * @param options.openChar - Character to open a group of children (defaults to "[")
- * @param options.closeChar - Character to close a group of children (defaults to "]")
- * @param options.separatorChar - Character to separate sibling nodes (defaults to ",")
- *
- * @returns A string signature representing the tree structure
- *
- * @throws {Error} If the specified idKey is missing from any node in the tree
- *
- * @example
- * const tree = {
- *   id: 1,
- *   children: [
- *     { id: 2, children: [] },
- *     { id: 3, children: [] }
- *   ]
- * };
- *
- * // Default format: "1[2,3]"
- * getSignature(tree, { idKey: "id" });
- *
- * // Custom format: "1(2;3)"
- * getSignature(tree, {
- *   idKey: "id",
- *   openChar: "(",
- *   closeChar: ")",
- *   separatorChar: ";"
- * });
- */
 export function getSignature<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+  TIdKey extends string = "id",
+  TId = string | number | symbol,
+  TInputNode extends NodeWithId<TChildrenKey, TIdKey, TId> = NodeWithId<
     TChildrenKey,
-    TExtraProps
+    TIdKey,
+    TId
   >
->(tree: TNode, options: Options<TChildrenKey>): string {
+>(tree: TInputNode, options?: Options<TChildrenKey, TIdKey>): string {
+  // Resolve defaults
   const childrenKey: TChildrenKey =
-    options.childrenKey ?? ("children" as TChildrenKey)
+    options?.childrenKey ?? ("children" as TChildrenKey)
+  const idKey = options?.idKey ?? ("id" as TIdKey)
+  const openChar = options?.openChar ?? "["
+  const closeChar = options?.closeChar ?? "]"
+  const separatorChar = options?.separatorChar ?? ","
 
-  const {
-    idKey,
-    openChar = "[",
-    closeChar = "]",
-    separatorChar = ",",
-  } = options
+  // Get the id of this node
+  let signature = String(tree[idKey])
 
-  let signature = "" + tree[idKey]
+  // Get the children array.
+  const childrenArray = tree[childrenKey] as TInputNode[] | undefined
 
-  if (tree[childrenKey] && tree[childrenKey].length > 0) {
-    signature += openChar
-    for (const child of tree[childrenKey]) {
-      signature += getSignature(child, options) + separatorChar
-    }
-    signature = signature.replace(/,$/, closeChar)
+  // If this is a leaf node, return its signature
+  if (!childrenArray || childrenArray.length === 0) {
+    return signature
   }
+
+  // This node has children..
+
+  // Prepare options for the internal recursive helper.
+  const helperOptions: Options<TChildrenKey, TIdKey> = {
+    childrenKey,
+    idKey,
+    openChar,
+    closeChar,
+    separatorChar,
+  }
+
+  // Append openChar
+  signature += openChar
+
+  // Append the signature of each child
+  for (const [i, child] of childrenArray.entries()) {
+    signature += getSignature<TChildrenKey, TIdKey, TId, TInputNode>(
+      child,
+      helperOptions
+    )
+    if (i < childrenArray.length - 1) {
+      signature += separatorChar
+    }
+  }
+
+  // Append closeChar
+  signature += closeChar
 
   return signature
 }
