@@ -1,142 +1,180 @@
-import { Node } from "./types.js"
+import { Node, UniformNode } from "./types.js"
 
-/**
- * Configuration options for tree traversal and node filtering.
- */
-interface Options<
+// Options for when the input tree is a generic Node
+interface GenericNodeOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {}
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
-  /**
-   * Function to test each node during traversal.
-   * @param node - The current node being tested
-   * @param parent - The parent of the current node (if any)
-   * @param depth - The depth of the current node in the tree
-   * @returns True if the node passes the test, false otherwise
-   * @default () => true
-   */
   testFn: (
-    node: Node<TChildrenKey, TExtraProps>,
-    parent?: Node<TChildrenKey, TExtraProps> | null,
+    node: TInputNode,
+    parent?: TInputNode | null,
     depth?: number
   ) => boolean
-
-  /**
-   * Whether to create a deep copy of the tree before modifying.
-   * Set to false to modify the original tree.
-   * @default true
-   */
   copy?: boolean
-
-  /**
-   * Name of the array property in tree that stores the child nodes
-   * @default "children"
-   */
   childrenKey?: TChildrenKey
 }
 
-/**
- * Result of a tree bifurcation operation.
- */
-interface Result<
+// Options specifically for when the input tree is a UniformNode
+interface UniformNodeOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {}
+  TExtraProps extends object = {},
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
+    TChildrenKey,
+    TExtraProps
+  >
 > {
-  /** The remaining tree after removing the matching subtree */
-  tree: Node<TChildrenKey, TExtraProps> | null
-  /** The first subtree that matches the test criteria */
-  subtree: Node<TChildrenKey, TExtraProps> | null
+  testFn: (
+    node: TInputNode,
+    parent?: TInputNode | null,
+    depth?: number
+  ) => boolean
+  copy?: boolean
+  childrenKey?: TChildrenKey
 }
 
-/**
- * Separates a tree into two parts based on a test function.
- * Traverses the tree depth-first, pre-order until finding a node that matches the test function,
- * then bifurcates the tree at that node and returns and object with the resulting two subtrees.
- *
- * @param tree - The tree to bifurcate
- * @param options - Configuration options for the bifurcation
- * @returns An object containing the remaining tree and the matching subtree (one may be null)
- *
- * @example
- * const tree = {
- *   value: 'root',
- *   children: [
- *     { value: 'A', children: [] },
- *     { value: 'B', children: [] }
- *   ]
- * };
- *
- * const result = bifurcate(tree, {
- *   testFn: (node) => node.value === 'B',
- *   copy: true
- * });
- * // result.subtree will be the node with value 'B'
- * // result.tree will be tree excluding the node with value 'B'
- */
+// --- Helper Options ---
+// This interface defines the shape of options the recursive helper will use.
+// TCurrentNode represents the type of the node currently being processed by the helper.
+interface HelperOptions<
+  TChildrenKey extends string = "children",
+  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
+> {
+  testFn: (
+    node: TCurrentNode,
+    parent?: TCurrentNode | null,
+    depth?: number
+  ) => boolean
+  childrenKey: TChildrenKey
+}
+
+// --- bifurcate Function Overloads ---
+
+// Overload 1: For UniformNode
+// When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
 export function bifurcate<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+  TExtraProps extends object = {},
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
   >
 >(
-  tree: TNode,
-  options: Options<TChildrenKey, TExtraProps>
-): Result<TChildrenKey, TExtraProps> {
-  const node = options?.copy === false ? tree : structuredClone(tree)
-  return bifurcateHelper<TChildrenKey, TExtraProps>(node, null, 0, {
-    childrenKey: "children" as TChildrenKey,
-    copy: false,
-    ...options,
-  })
+  tree: TInputNode,
+  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
+):
+  | { parent: TInputNode; child: TInputNode }
+  | { parent: null; child: TInputNode }
+  | { parent: TInputNode; child: null }
+
+// Overload 2: For generic Node (this comes after more specific overloads)
+// When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
+export function bifurcate<
+  TChildrenKey extends string = "children",
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  tree: TInputNode,
+  options: GenericNodeOptions<TChildrenKey>
+):
+  | { parent: TInputNode; child: TInputNode }
+  | { parent: null; child: TInputNode }
+  | { parent: TInputNode; child: null }
+
+// --- bifurcate Implementation ---
+// This single implementation handles both overload cases.
+// TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
+// Returns an object like { parent, child }
+// If the target node found, it will be the root of child
+// If the target node is not found, child will be null
+// parent will be the tree excluding child
+
+export function bifurcate<
+  TChildrenKey extends string = "children",
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  tree: TInputNode,
+  options:
+    | GenericNodeOptions<TChildrenKey, TInputNode>
+    | UniformNodeOptions<TChildrenKey, any, TInputNode>
+):
+  | { parent: TInputNode; child: TInputNode }
+  | { parent: null; child: TInputNode }
+  | { parent: TInputNode; child: null } {
+  // Resolve defaults
+  const childrenKey: TChildrenKey =
+    options?.childrenKey ?? ("children" as TChildrenKey)
+  const testFn = options.testFn
+  const copy = options?.copy ?? false
+
+  // Prepare options for the internal recursive helper.
+  // The 'testFn' passed to the helper is the one provided by the user (or the default),
+  // which has been correctly typed by the overload resolution based on 'tree'.
+  // We assert its type to match what `bifurcateHelper` expects for its `TCurrentNode`.
+  const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
+    childrenKey,
+    testFn,
+  }
+
+  // Initial call to the recursive helper. TInputNode is the type of the root.
+  return bifurcateHelper<TChildrenKey, TInputNode>(
+    copy ? structuredClone(tree) : tree,
+    null,
+    0,
+    helperOptions
+  )
 }
 
-/**
- * Helper function that performs the recursive bifurcation operation.
- *
- * @param tree - The current tree or subtree being processed
- * @param options - Configuration options for the bifurcation
- * @param parent - The parent node of the current tree (null for root)
- * @param depth - The current depth in the tree (0 for root)
- * @returns Result object containing the split tree parts
- *
- * @private This is an internal helper function not meant for direct use
- */
+// --- bifurcateHelper (Recursive Part) ---
+// TCurrentNode is the type of the node being processed in *this specific recursive step*.
+
 function bifurcateHelper<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
-    TChildrenKey,
-    TExtraProps
-  >
+  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
-  node: TNode,
-  parent: TNode | null,
+  node: TCurrentNode,
+  parent: TCurrentNode | null,
   depth: number,
-  options: Required<Options<TChildrenKey, TExtraProps>>
-): Result<TChildrenKey, TExtraProps> {
+  options: HelperOptions<TChildrenKey, TCurrentNode>
+):
+  | { parent: TCurrentNode; child: TCurrentNode }
+  | { parent: null; child: TCurrentNode }
+  | { parent: TCurrentNode; child: null } {
   // Destructure options
   const { testFn, childrenKey } = options
 
+  // This node is a match, exit early
   if (testFn(node, parent, depth)) {
-    // This node is a match
-    return { tree: null, subtree: node }
-  } else {
-    // This node is not a match
+    return { parent: null, child: node }
+  }
 
-    // Check each child
-    for (const [idx, child] of node[childrenKey].entries()) {
-      const result = bifurcateHelper(child, node, depth + 1, options)
+  // Get the children array
+  const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
 
-      // If this child subtree was bifurcated, return
-      if (result.subtree) {
-        node[childrenKey].splice(idx, 1)
-        return { ...result, tree: node }
+  // If this is a leaf node...
+  if (!childrenArray || childrenArray.length === 0) {
+    return { parent: node, child: null }
+  }
+
+  // Check each child
+  for (const [i, child] of childrenArray.entries()) {
+    const result = bifurcateHelper(child, node, depth + 1, options)
+
+    // If this child was successfully bifurcated, return
+    if (result.child) {
+      return {
+        // If result.parent is null, just chop of this child from node
+        // Otherwise replace this child with result.parent
+        parent: {
+          ...node,
+          [childrenKey]:
+            result.parent === null
+              ? childrenArray.filter((_, j) => j !== i)
+              : childrenArray.map((x, j) => (j === i ? result.parent : x)),
+        },
+        child: result.child,
       }
     }
-
-    // If we made it this far, a matching node was not found
-    return { tree: null, subtree: null }
   }
+
+  // If we made it this far, a matching node was not found
+  return { parent: node, child: null }
 }
