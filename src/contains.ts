@@ -1,117 +1,125 @@
-import { Node } from "./types.js"
+import { Node, UniformNode } from "./types.js"
 
-/**
- * Configuration options for tree traversal and node filtering.
- */
-interface Options<
+// Options for when the input tree is a generic Node
+interface GenericNodeOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {}
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
-  /**
-   * Function to test whether a node should be counted
-   * @param node - The current node being tested
-   * @param parent - The parent node of the current node, if any
-   * @param depth - The depth of the current node in the tree (0-based)
-   * @returns boolean indicating whether this node should be counted
-   * @default () => true - counts all nodes if not specified
-   */
   testFn: (
-    node: Node<TChildrenKey, TExtraProps>,
-    parent?: Node<TChildrenKey, TExtraProps> | null,
+    node: TInputNode,
+    parent?: TInputNode | null,
     depth?: number
   ) => boolean
-
-  /**
-   * Name of the array property in tree that stores the child nodes
-   * @default "children"
-   */
   childrenKey?: TChildrenKey
 }
 
-/**
- * Checks if a tree contains any nodes that match the given criteria.
- * Performs a depth-first search of the tree, testing each node against
- * the provided test function.
- *
- * @param tree - The tree to search
- * @param options - Configuration options containing the test function
- * @param options.childrenKey - Optional name of the array property in tree that stores the child nodes
- * @param options.testFn - Function to filter which nodes should be checked
- * @returns True if any node in the tree passes the test function, false otherwise
- * @throws Error if testFn is not provided in options
- *
- * @example
- * const tree = {
- *   value: 1,
- *   children: [
- *     { value: 2, children: [] },
- *     { value: 3, children: [] }
- *   ]
- * };
- *
- * // Check if tree contains a node with value 2
- * const hasTwo = contains(tree, {
- *   testFn: (node) => node.value === 2
- * }); // returns true
- *
- * // Check if tree contains a node with value 4
- * const hasFour = contains(tree, {
- *   testFn: (node) => node.value === 4
- * }); // returns false
- */
-export function contains<
+// Options specifically for when the input tree is a UniformNode
+interface UniformNodeOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+  TExtraProps extends object = {},
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
   >
->(tree: TNode, options: Options<TChildrenKey, TExtraProps>): boolean {
-  return containsHelper<TChildrenKey, TExtraProps, TNode>(tree, null, 0, {
-    childrenKey: "children" as TChildrenKey,
-    ...options,
-  })
+> {
+  testFn: (
+    node: TInputNode,
+    parent?: TInputNode | null,
+    depth?: number
+  ) => boolean
+  childrenKey?: TChildrenKey
 }
 
-/**
- * Recursive helper function that traverses the tree to check matching nodes
- *
- * @param node - Current node being examined
- * @param parent - Parent of the current node
- * @param depth - Current depth in the tree (0-based)
- * @param options - Configuration options for counting nodes
- * @returns Boolean value indicating whether the tree contains X
- *
- * @internal
- * This is an internal helper function and should not be called directly.
- */
-function containsHelper<
+// --- Helper Options for contains ---
+interface ContainsHelperOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
+> {
+  childrenKey: TChildrenKey
+  testFn: (
+    node: TCurrentNode,
+    parent: TCurrentNode | null,
+    depth: number
+  ) => boolean
+}
+
+// --- contains Function Overloads ---
+
+// Overload 1: For UniformNode
+// When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
+export function contains<
+  TChildrenKey extends string = "children",
+  TExtraProps extends object = {},
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
   >
 >(
-  node: TNode,
-  parent: TNode | null,
+  tree: TInputNode,
+  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
+): boolean
+
+// Overload 2: For generic Node
+// When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
+export function contains<
+  TChildrenKey extends string = "children",
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(tree: TInputNode, options: GenericNodeOptions<TChildrenKey>): boolean
+
+// --- contains Implementation ---
+// This single implementation handles both overload cases.
+// TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
+export function contains<
+  TChildrenKey extends string = "children",
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  tree: TInputNode,
+  options:
+    | GenericNodeOptions<TChildrenKey, TInputNode>
+    | UniformNodeOptions<TChildrenKey, any, TInputNode>
+): boolean {
+  // Resolve defaults
+  const childrenKey: TChildrenKey =
+    options.childrenKey ?? ("children" as TChildrenKey)
+  const testFn = options.testFn
+
+  // Prepare options for the internal recursive helper.
+  const helperOptions: ContainsHelperOptions<TChildrenKey, TInputNode> = {
+    childrenKey,
+    testFn,
+  }
+
+  // Initial call to the recursive helper. TInputNode is the type of the root.
+  return containsHelper<TChildrenKey, TInputNode>(tree, null, 0, helperOptions)
+}
+
+// --- containsHelper (Recursive Part) ---
+function containsHelper<
+  TChildrenKey extends string = "children",
+  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  node: TCurrentNode,
+  parent: TCurrentNode | null,
   depth: number,
-  options: Required<Options<TChildrenKey, TExtraProps>>
+  options: ContainsHelperOptions<TChildrenKey, TCurrentNode>
 ): boolean {
   const { childrenKey, testFn } = options
 
-  // If this node passes testFn, return true
   if (testFn(node, parent, depth)) {
     return true
   }
 
-  // Recursively check this node's children
-  for (const child of node[childrenKey]) {
-    if (containsHelper(child, node, depth + 1, options)) {
+  const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
+
+  if (!childrenArray || childrenArray.length === 0) {
+    return false
+  }
+
+  for (const childNode of childrenArray) {
+    if (containsHelper(childNode, node, depth + 1, options)) {
       return true
     }
   }
 
-  // If we made it here, no nodes pass testFn
   return false
 }

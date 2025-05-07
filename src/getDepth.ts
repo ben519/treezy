@@ -1,74 +1,92 @@
 import { Node } from "./types.js"
 
 /**
- * Configuration options for tree traversal.
+ * Options for processing a generic Node tree structure.
+ * @template TChildrenKey - The key used to access children nodes (defaults to "children").
  */
-interface Options<TChildrenKey extends string = "children"> {
-  /**
-   * Name of the array property in tree that stores the child nodes
-   * @default "children"
-   */
+interface GenericNodeOptions<TChildrenKey extends string = "children"> {
+  /** The property name used to access child nodes in the tree. */
   childrenKey?: TChildrenKey
 }
 
 /**
- * Calculates the maximum depth (height) of a tree.
- * The root node has depth 0, its children have depth 1, and so on.
- *
- * @param tree - The tree to measure
- * @param options - Configuration options containing the test function
- * @param options.childrenKey - Optional name of the array property in tree that stores the child nodes
- * @returns The maximum depth of any leaf node in the tree
- *
- * @example
- * const tree = {           // depth 0
- *   children: [
- *     { children: [] },    // depth 1
- *     { children: [        // depth 1
- *       { children: [] }   // depth 2
- *     ]}
- *   ]
- * };
- *
- * const depth = getDepth(tree); // returns 2
+ * Internal options used by recursive helper functions.
+ * @template TChildrenKey - The key used to access children nodes.
  */
-export function getDepth<
-  TChildrenKey extends string = "children",
-  TNode extends Node<TChildrenKey> = Node<TChildrenKey>
->(tree: TNode, options?: Options<TChildrenKey>): number {
-  return getDepthHelper<TChildrenKey>(tree, 0, {
-    childrenKey: "children" as TChildrenKey,
-    ...options,
-  })
+interface HelperOptions<TChildrenKey extends string = "children"> {
+  /** The resolved property name used to access child nodes. */
+  childrenKey: TChildrenKey
 }
 
 /**
- * Recursive helper function that calculates tree depth.
- * Traverses the tree depth-first, tracking the current depth
- * and finding the maximum depth among all paths.
+ * Calculates the maximum depth of a tree structure.
  *
- * @param tree - The current tree or subtree being measured
- * @param depth - The current depth in the traversal
- * @returns The maximum depth found in this subtree
+ * @template TChildrenKey - The key used to access children nodes (defaults to "children").
+ * @template TInputNode - The type of node being processed.
+ * @param tree - The root node of the tree.
+ * @param options - Optional configuration for tree traversal.
+ * @returns The maximum depth of the tree (a leaf node at depth 0 returns 0).
  *
- * @private This is an internal helper function not meant for direct use
+ * @example
+ * const tree = {
+ *   value: "root",
+ *   children: [
+ *     { value: "child1", children: [] },
+ *     { value: "child2", children: [{ value: "grandchild", children: [] }] }
+ *   ]
+ * };
+ * const depth = getDepth(tree); // Returns 2
+ */
+export function getDepth<
+  TChildrenKey extends string = "children",
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(tree: TInputNode, options?: GenericNodeOptions<TChildrenKey>): number {
+  // Resolve default options
+  const childrenKey: TChildrenKey =
+    options?.childrenKey ?? ("children" as TChildrenKey)
+
+  // Prepare options for the recursive helper
+  const helperOptions: HelperOptions<TChildrenKey> = {
+    childrenKey,
+  }
+
+  return getDepthHelper<TChildrenKey>(tree, 0, helperOptions)
+}
+
+/**
+ * Recursive helper function that calculates the depth of a tree.
+ *
+ * @template TChildrenKey - The key used to access children nodes.
+ * @template TCurrentNode - The type of node being processed in this recursive step.
+ * @param node - The current node being processed.
+ * @param depth - The current depth in the tree.
+ * @param options - Configuration for tree traversal.
+ * @returns The maximum depth of the subtree rooted at the current node.
+ * @private
  */
 function getDepthHelper<
   TChildrenKey extends string = "children",
-  TNode extends Node<TChildrenKey> = Node<TChildrenKey>
+  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
-  tree: TNode,
-  depth: number = 0,
-  options: Required<Options<TChildrenKey>>
+  node: TCurrentNode,
+  depth: number,
+  options: HelperOptions<TChildrenKey>
 ): number {
-  // Destructure options
   const { childrenKey } = options
 
+  // Get the children array
+  const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
+
+  // If this is a leaf node
+  if (!childrenArray || childrenArray.length === 0) {
+    return depth
+  }
+
   // Get the depth of each child subtree
-  const childDepths = tree[childrenKey].map((x) =>
-    getDepthHelper(x, depth + 1, options)
+  const childDepths = childrenArray.map((child) =>
+    getDepthHelper(child, depth + 1, options)
   )
 
-  // Return the depth of the tallest child subtree, or the current depth
-  return Math.max(...childDepths, depth)
+  // Return the maximum depth found
+  return Math.max(...childDepths)
 }

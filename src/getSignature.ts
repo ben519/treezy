@@ -78,7 +78,8 @@ export function getSignature<
     TExtraProps
   >
 >(tree: TNode, options: Options<TChildrenKey>): string {
-  const childrenKey = options.childrenKey ?? ("children" as TChildrenKey)
+  const childrenKey: TChildrenKey =
+    options.childrenKey ?? ("children" as TChildrenKey)
 
   const {
     idKey,
