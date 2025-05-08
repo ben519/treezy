@@ -4,7 +4,7 @@ import { Node } from "./types.js"
  * Options for processing a generic Node tree structure.
  * @template TChildrenKey - The key used to access children nodes (defaults to "children").
  */
-interface GenericNodeOptions<TChildrenKey extends string = "children"> {
+interface GenericNodeOptions<TChildrenKey extends string> {
   /** The property name used to access child nodes in the tree. */
   childrenKey: TChildrenKey
 }
@@ -13,7 +13,7 @@ interface GenericNodeOptions<TChildrenKey extends string = "children"> {
  * Internal options used by recursive helper functions.
  * @template TChildrenKey - The key used to access children nodes.
  */
-interface HelperOptions<TChildrenKey extends string = "children"> {
+interface HelperOptions<TChildrenKey extends string> {
   /** The resolved property name used to access child nodes. */
   childrenKey: TChildrenKey
 }
@@ -38,7 +38,7 @@ interface HelperOptions<TChildrenKey extends string = "children"> {
  * const depth = getDepth(tree); // Returns 2
  */
 export function getDepth<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(tree: TInputNode, options?: GenericNodeOptions<TChildrenKey>): number {
   // Resolve default options
@@ -65,7 +65,7 @@ export function getDepth<
  * @private
  */
 function getDepthHelper<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
   node: TCurrentNode,

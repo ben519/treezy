@@ -4,7 +4,7 @@ import { Node, UniformNode } from "../src/types"
 describe("reduce function", () => {
   // Test case 1: Simple tree with default children key
   test("should correctly reduce a simple tree with default children key", () => {
-    const simpleTree: Node = {
+    const simpleTree: Node<"children"> = {
       value: 1,
       children: [
         { value: 2 },
@@ -48,7 +48,7 @@ describe("reduce function", () => {
 
   // Test case 3: Using parent reference
   test("should provide parent node reference to the reducer function", () => {
-    const tree: Node = {
+    const tree: Node<"children"> = {
       id: "root",
       children: [
         { id: "child1" },
@@ -82,7 +82,7 @@ describe("reduce function", () => {
 
   // Test case 4: Using depth parameter
   test("should provide correct depth to the reducer function", () => {
-    const tree: Node = {
+    const tree: Node<"children"> = {
       level: "root",
       children: [
         { level: "level1-1" },
@@ -114,7 +114,7 @@ describe("reduce function", () => {
 
   // Test case 5: Accumulating values with complex logic
   test("should accumulate values with complex reducer logic", () => {
-    const fileSystem: Node = {
+    const fileSystem: Node<"children"> = {
       name: "root",
       type: "dir",
       size: 0,
@@ -191,7 +191,7 @@ describe("reduce function", () => {
 
   // Test case 7: Empty tree
   test("should handle empty tree correctly", () => {
-    const emptyTree: Node = { value: 5 } // No children
+    const emptyTree: Node<"children"> = { value: 5 } // No children
 
     const result = reduce(emptyTree, {
       childrenKey: "children",
@@ -204,7 +204,7 @@ describe("reduce function", () => {
 
   // Test case 8: Using initialVal other than numbers
   test("should work with non-numeric initialVal", () => {
-    const familyTree: Node = {
+    const familyTree: Node<"children"> = {
       name: "Grandparent",
       generation: 1,
       children: [

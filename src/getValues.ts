@@ -2,7 +2,7 @@ import { Node, UniformNode } from "./types.js"
 
 // Options for when the input tree is a generic Node
 interface GenericNodeOptions<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
   testFn?: (
@@ -17,8 +17,8 @@ interface GenericNodeOptions<
 
 // Options specifically for when the input tree is a UniformNode
 interface UniformNodeOptions<
-  TChildrenKey extends string = "children",
-  TExtraProps extends object = {},
+  TChildrenKey extends string,
+  TExtraProps extends object = { [key: string]: unknown },
   TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
@@ -38,7 +38,7 @@ interface UniformNodeOptions<
 // This interface defines the shape of options the recursive helper will use.
 // TCurrentNode represents the type of the node currently being processed by the helper.
 interface HelperOptions<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
   testFn: (
@@ -55,8 +55,8 @@ interface HelperOptions<
 // Overload 1: For UniformNode
 // When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
 export function getValues<
-  TChildrenKey extends string = "children",
-  TExtraProps extends object = {},
+  TChildrenKey extends string,
+  TExtraProps extends object = { [key: string]: unknown },
   TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
@@ -69,7 +69,7 @@ export function getValues<
 // Overload 2: For generic Node (this comes after more specific overloads)
 // When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
 export function getValues<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(tree: TInputNode, options?: GenericNodeOptions<TChildrenKey>): any[]
 
@@ -77,7 +77,7 @@ export function getValues<
 // This single implementation handles both overload cases.
 // TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
 export function getValues<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
   tree: TInputNode,
@@ -114,7 +114,7 @@ export function getValues<
 // --- getValuesHelper (Recursive Part) ---
 // TCurrentNode is the type of the node being processed in *this specific recursive step*.
 function getValuesHelper<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
   node: TCurrentNode,

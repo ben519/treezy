@@ -6,12 +6,12 @@ describe("insert function", () => {
   describe("with generic nodes", () => {
     test('should insert node below when direction is "below"', () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }, { id: "child2" }],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {
@@ -28,12 +28,12 @@ describe("insert function", () => {
 
     test('should insert node after when direction is "after"', () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }, { id: "child2" }],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {
@@ -54,12 +54,12 @@ describe("insert function", () => {
 
     test('should insert node before when direction is "before"', () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }, { id: "child2" }],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {
@@ -80,12 +80,12 @@ describe("insert function", () => {
 
     test("should create children array if it does not exist when inserting below", () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {
@@ -129,7 +129,7 @@ describe("insert function", () => {
 
     test("should search deeply nested nodes", () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           {
@@ -144,7 +144,7 @@ describe("insert function", () => {
         ],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {
@@ -162,12 +162,12 @@ describe("insert function", () => {
 
     test("should return undefined if no matching node is found", () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }, { id: "child2" }],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {
@@ -183,12 +183,12 @@ describe("insert function", () => {
 
     test("should copy tree when copy option is true", () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {
@@ -208,12 +208,12 @@ describe("insert function", () => {
 
     test("should throw error when trying to insert before/after root", () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute & Assert
       expect(() => {
@@ -250,12 +250,15 @@ describe("insert function", () => {
       const nodeToInsert: MyNode = { id: "new-node", value: 4 }
 
       // Execute
-      const result = insert(tree, {
-        childrenKey: "children",
-        nodeToInsert,
-        testFn: (node) => node.id === "child1",
-        direction: "below",
-      })
+      const result = insert<"children", { id: string; value?: number }, MyNode>(
+        tree,
+        {
+          childrenKey: "children",
+          nodeToInsert,
+          testFn: (node) => node.id === "child1",
+          direction: "below",
+        }
+      )
 
       // Assert
       expect(result).toBeDefined()
@@ -282,14 +285,17 @@ describe("insert function", () => {
       const nodeToInsert: MyNode = { id: "new-node", value: 4 }
 
       // Execute
-      const result = insert(tree, {
-        childrenKey: "children",
-        nodeToInsert,
-        testFn: (node, parent, depth) => {
-          return parent?.id === "child1" && depth === 2
-        },
-        direction: "after",
-      })
+      const result = insert<"children", { id: string; value?: number }, MyNode>(
+        tree,
+        {
+          childrenKey: "children",
+          nodeToInsert,
+          testFn: (node, parent, depth) => {
+            return parent?.id === "child1" && depth === 2
+          },
+          direction: "after",
+        }
+      )
 
       // Assert
       expect(result).toBeDefined()
@@ -304,12 +310,12 @@ describe("insert function", () => {
   describe("default options", () => {
     test('should use default direction "below" when not specified', () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {
@@ -326,12 +332,12 @@ describe("insert function", () => {
 
     test("should use default testFn when not specified", () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {
@@ -347,12 +353,12 @@ describe("insert function", () => {
 
     test('should use default childrenKey "children" when not specified', () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {
@@ -372,12 +378,12 @@ describe("insert function", () => {
   describe("edge cases", () => {
     test("should handle empty children array", () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [],
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {
@@ -394,12 +400,12 @@ describe("insert function", () => {
 
     test("should handle undefined children property", () => {
       // Setup
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         // children is undefined
       }
 
-      const nodeToInsert: Node = { id: "new-node" }
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
 
       // Execute
       const result = insert(tree, {

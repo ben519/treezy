@@ -6,11 +6,15 @@ interface Options<TChildrenKey extends string> {
 
 export function isNodeUniformNode<
   TChildrenKey extends string,
-  TExtraProps extends object = {}
+  TExtraProps extends object,
+  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+    TChildrenKey,
+    TExtraProps
+  >
 >(
-  node: Node<TChildrenKey>,
+  node: TNode,
   options: Options<TChildrenKey>
-): node is UniformNode<TChildrenKey, TExtraProps> {
+): node is TNode & UniformNode<TChildrenKey, TExtraProps> {
   // Destructure options
   const { childrenKey } = options
 
@@ -29,7 +33,7 @@ export function isNodeUniformNode<
   // Create a map of property types from the parent node to compare with children
   const propertyTypes: Record<string, string> = {}
   for (const key of nodeKeys) {
-    propertyTypes[key] = typeof node[key]
+    propertyTypes[key] = typeof node[key as keyof typeof node]
   }
 
   // Check each child
@@ -44,13 +48,21 @@ export function isNodeUniformNode<
 
     // Check that each key exists and has the same type
     for (const key of childKeys) {
-      if (!nodeKeysSet.has(key) || typeof child[key] !== propertyTypes[key]) {
+      if (
+        !nodeKeysSet.has(key) ||
+        typeof child[key as keyof typeof child] !== propertyTypes[key]
+      ) {
         return false
       }
     }
 
     // Recursively check if the child's children are also uniform
-    if (!isNodeUniformNode<TChildrenKey, TExtraProps>(child, options)) {
+    if (
+      !isNodeUniformNode<TChildrenKey, TExtraProps>(
+        child as Node<TChildrenKey, TExtraProps>,
+        options
+      )
+    ) {
       return false
     }
   }

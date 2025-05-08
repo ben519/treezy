@@ -5,7 +5,7 @@ describe("bifurcate function", () => {
   // Test with basic Node type
   describe("with generic Node type", () => {
     test("should return child when root node matches the test function", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           { id: "child1" },
@@ -23,7 +23,7 @@ describe("bifurcate function", () => {
     })
 
     test("should return child when child node matches the test function", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           { id: "child1" },
@@ -47,7 +47,7 @@ describe("bifurcate function", () => {
     })
 
     test("should return child when grandchild node matches the test function", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           { id: "child1" },
@@ -68,7 +68,7 @@ describe("bifurcate function", () => {
     })
 
     test("should return null child when no node matches the test function", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           { id: "child1" },
@@ -86,7 +86,7 @@ describe("bifurcate function", () => {
     })
 
     test("should work with empty children array", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [],
       }
@@ -101,7 +101,7 @@ describe("bifurcate function", () => {
     })
 
     test("should work with no children property", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
       }
 
@@ -141,7 +141,7 @@ describe("bifurcate function", () => {
     })
 
     test("should use copy option to create a deep copy", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           { id: "child1" },
@@ -172,7 +172,7 @@ describe("bifurcate function", () => {
     })
 
     test("should provide parent and depth to testFn", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           { id: "child1" },
@@ -273,7 +273,7 @@ describe("bifurcate function", () => {
   // Complex test cases
   describe("complex scenarios", () => {
     test("should handle finding a node in the middle of a deep tree", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           {
@@ -324,7 +324,7 @@ describe("bifurcate function", () => {
     })
 
     test("should handle multiple matches by returning the first match", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           { id: "match", value: 1 },

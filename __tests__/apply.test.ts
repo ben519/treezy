@@ -4,7 +4,7 @@ import { Node, UniformNode } from "../src/types"
 describe("apply function", () => {
   // Basic test with a simple tree
   test("basic functionality with generic Node", () => {
-    const tree: Node = {
+    const tree: Node<"children"> = {
       value: 1,
       children: [{ value: 2 }, { value: 3, children: [{ value: 4 }] }],
     }
@@ -60,7 +60,7 @@ describe("apply function", () => {
 
   // Test with a custom test function
   test("test function filters nodes to be modified", () => {
-    const tree: Node = {
+    const tree: Node<"children"> = {
       value: 1,
       children: [{ value: 2 }, { value: 3, children: [{ value: 4 }] }],
     }
@@ -83,7 +83,7 @@ describe("apply function", () => {
 
   // Test with depth parameter
   test("depth parameter works correctly", () => {
-    const tree: Node = {
+    const tree: Node<"children"> = {
       level: 0,
       children: [
         { level: 0 },
@@ -109,7 +109,7 @@ describe("apply function", () => {
 
   // Test with parent parameter
   test("parent parameter works correctly", () => {
-    const tree: Node = {
+    const tree: Node<"children"> = {
       id: "root",
       parentId: null,
       children: [
@@ -137,7 +137,7 @@ describe("apply function", () => {
 
   // Test with copy option
   test("copy option creates a deep clone", () => {
-    const tree: Node = {
+    const tree: Node<"children"> = {
       value: 1,
       children: [{ value: 2 }, { value: 3, children: [{ value: 4 }] }],
     }
@@ -192,7 +192,7 @@ describe("apply function", () => {
 
   // Test with empty tree
   test("handles leaf nodes correctly", () => {
-    const tree: Node = {
+    const tree: Node<"children"> = {
       value: "leaf",
       // No children
     }
@@ -210,7 +210,7 @@ describe("apply function", () => {
 
   // Test with empty children array
   test("handles empty children array", () => {
-    const tree: Node = {
+    const tree: Node<"children"> = {
       value: "parent",
       children: [], // Empty array
     }
@@ -229,7 +229,7 @@ describe("apply function", () => {
 
   // Test with complex nested structure
   test("handles complex nested structure", () => {
-    const tree: Node = {
+    const tree: Node<"children"> = {
       id: "root",
       children: [
         {

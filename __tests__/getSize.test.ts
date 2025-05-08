@@ -5,20 +5,20 @@ describe("getSize function", () => {
   // Basic tests with generic Node type
   describe("Generic Node tests", () => {
     test("counts a single node with no children", () => {
-      const tree: Node = { id: 1 }
-      expect(getSize(tree)).toBe(1)
+      const tree: Node<"children"> = { id: 1 }
+      expect(getSize(tree, { childrenKey: "children" })).toBe(1)
     })
 
     test("counts a tree with one level of children", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         children: [{ id: 2 }, { id: 3 }],
       }
-      expect(getSize(tree)).toBe(3)
+      expect(getSize(tree, { childrenKey: "children" })).toBe(3)
     })
 
     test("counts a deeply nested tree", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         children: [
           {
@@ -31,7 +31,7 @@ describe("getSize function", () => {
           },
         ],
       }
-      expect(getSize(tree)).toBe(6)
+      expect(getSize(tree, { childrenKey: "children" })).toBe(6)
     })
   })
 
@@ -51,7 +51,7 @@ describe("getSize function", () => {
           { id: 3, completed: false },
         ],
       }
-      expect(getSize(todoTree)).toBe(3)
+      expect(getSize(todoTree, { childrenKey: "children" })).toBe(3)
     })
 
     test("counts only nodes matching test function", () => {
@@ -99,14 +99,14 @@ describe("getSize function", () => {
       }
 
       // Using default 'children' key when tree uses 'items'
-      expect(getSize(tree)).toBe(1) // Only counts root node
+      expect(getSize(tree, { childrenKey: "children" })).toBe(1) // Only counts root node
     })
   })
 
   // Advanced test scenarios
   describe("Advanced scenarios", () => {
     test("counts nodes based on depth", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         children: [
           {
@@ -130,7 +130,7 @@ describe("getSize function", () => {
     })
 
     test("counts nodes based on parent relationship", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         children: [
           {
@@ -154,16 +154,16 @@ describe("getSize function", () => {
     })
 
     test("handles empty tree", () => {
-      const tree: Node = {}
-      expect(getSize(tree)).toBe(1) // Just the root node
+      const tree: Node<"children"> = {}
+      expect(getSize(tree, { childrenKey: "children" })).toBe(1) // Just the root node
     })
 
     test("handles null or undefined children", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         children: undefined,
       }
-      expect(getSize(tree)).toBe(1)
+      expect(getSize(tree, { childrenKey: "children" })).toBe(1)
 
       const treeWithNull: any = {
         id: 1,

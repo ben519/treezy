@@ -83,35 +83,35 @@ describe("isNode function", () => {
 
 describe("isNodeLeafNode function", () => {
   test("should return true for nodes without children property", () => {
-    const node: Node = { id: 1, children: [] }
-    const options = { childrenKey: "children" }
-    isNodeLeafNode(node, options)
+    const node = { id: 1, children: [] }
+    const options = { childrenKey: "children" } as const
 
+    isNodeLeafNode(node, options)
     expect(isNodeLeafNode(node, options)).toBe(true)
   })
 
   test("should return true for nodes with empty children array", () => {
-    const node: Node = { id: 1, children: [] }
-    const options = { childrenKey: "children" }
+    const node: Node<"children"> = { id: 1, children: [] }
+    const options = { childrenKey: "children" } as const
 
     expect(isNodeLeafNode(node, options)).toBe(true)
   })
 
   test("should return false for nodes with non-empty children array", () => {
-    const node: Node = {
+    const node: Node<"children"> = {
       id: 1,
       children: [{ id: 2 }],
     }
-    const options = { childrenKey: "children" }
+    const options = { childrenKey: "children" } as const
 
     expect(isNodeLeafNode(node, options)).toBe(false)
   })
 
   test("should work with custom children key", () => {
-    const emptyNode: Node = { id: 1, items: [] }
-    const noItemsNode: Node = { id: 1 }
-    const nonLeafNode: Node = { id: 1, items: [{ id: 2 }] }
-    const options = { childrenKey: "items" }
+    const emptyNode: Node<"children"> = { id: 1, items: [] }
+    const noItemsNode: Node<"children"> = { id: 1 }
+    const nonLeafNode: Node<"children"> = { id: 1, items: [{ id: 2 }] }
+    const options = { childrenKey: "items" } as const
 
     expect(isNodeLeafNode(emptyNode, options)).toBe(true)
     expect(isNodeLeafNode(noItemsNode, options)).toBe(true)

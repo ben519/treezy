@@ -2,7 +2,7 @@ import { Node, UniformNode } from "./types.js"
 
 // Options for when the input tree is a generic Node
 interface GenericNodeOptions<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
   nodeToInsert: TInputNode
@@ -18,8 +18,8 @@ interface GenericNodeOptions<
 
 // Options specifically for when the input tree is a UniformNode
 interface UniformNodeOptions<
-  TChildrenKey extends string = "children",
-  TExtraProps extends object = {},
+  TChildrenKey extends string,
+  TExtraProps extends object = { [key: string]: unknown },
   TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
@@ -40,7 +40,7 @@ interface UniformNodeOptions<
 // This interface defines the shape of options the recursive helper will use.
 // TCurrentNode represents the type of the node currently being processed by the helper.
 interface HelperOptions<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
   childrenKey: TChildrenKey
@@ -58,8 +58,8 @@ interface HelperOptions<
 // Overload 1: For UniformNode
 // When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
 export function insert<
-  TChildrenKey extends string = "children",
-  TExtraProps extends object = {},
+  TChildrenKey extends string,
+  TExtraProps extends object = { [key: string]: unknown },
   TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
@@ -72,7 +72,7 @@ export function insert<
 // Overload 2: For generic Node (this comes after more specific overloads)
 // When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
 export function insert<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
   tree: TInputNode,
@@ -83,7 +83,7 @@ export function insert<
 // This single implementation handles both overload cases.
 // TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
 export function insert<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
   tree: TInputNode,
@@ -117,7 +117,7 @@ export function insert<
 }
 
 function insertHelper<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
   node: TCurrentNode,

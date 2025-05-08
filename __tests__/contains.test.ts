@@ -5,7 +5,7 @@ describe("contains function", () => {
   // Test with generic nodes
   describe("with generic Node type", () => {
     test("should return true when node satisfies test function", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         name: "root",
         children: [
@@ -23,7 +23,7 @@ describe("contains function", () => {
     })
 
     test("should return false when no node satisfies test function", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         name: "root",
         children: [
@@ -41,7 +41,7 @@ describe("contains function", () => {
     })
 
     test("should search in deeply nested nodes", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         name: "root",
         children: [
@@ -74,7 +74,7 @@ describe("contains function", () => {
     })
 
     test("should handle empty trees", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         name: "root",
       }
@@ -88,7 +88,7 @@ describe("contains function", () => {
     })
 
     test("should handle empty children arrays", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         name: "root",
         children: [],
@@ -173,7 +173,7 @@ describe("contains function", () => {
   // Test the parent and depth parameters
   describe("parent and depth parameters", () => {
     test("should provide correct parent reference", () => {
-      const tree: Node = {
+      const tree: UniformNode<"children", { id: number; name: string }> = {
         id: 1,
         name: "root",
         children: [
@@ -204,7 +204,7 @@ describe("contains function", () => {
     })
 
     test("should provide correct depth values", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         name: "root",
         children: [
@@ -223,7 +223,9 @@ describe("contains function", () => {
       contains(tree, {
         childrenKey: "children",
         testFn: (node, _parent, depth) => {
-          depths[node.id] = depth
+          if (typeof node.id === "number") {
+            depths[node.id] = depth
+          }
           return false // We want to visit all nodes
         },
       })
@@ -242,8 +244,8 @@ describe("contains function", () => {
   describe("edge cases", () => {
     // test("should handle circular references", () => {
     //   // Create nodes that we can mutate to create a circular reference
-    //   const root: Node = { id: 1, name: "root", children: [] }
-    //   const child: Node = { id: 2, name: "child", children: [] }
+    //   const root: Node<"children"> = { id: 1, name: "root", children: [] }
+    //   const child: Node<"children"> = { id: 2, name: "child", children: [] }
 
     //   // Create a circular reference
     //   root.children = [child]
@@ -270,7 +272,7 @@ describe("contains function", () => {
     // })
 
     test("should handle nodes with null or undefined children", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: 1,
         name: "root",
         children: [

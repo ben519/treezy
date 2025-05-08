@@ -5,7 +5,7 @@ describe("getParent function", () => {
   // Test with generic Node type
   describe("with generic Node type", () => {
     test("should return null when target node is the root", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }, { id: "child2" }],
       }
@@ -19,7 +19,7 @@ describe("getParent function", () => {
     })
 
     test("should find parent of a direct child", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }, { id: "child2" }],
       }
@@ -33,7 +33,7 @@ describe("getParent function", () => {
     })
 
     test("should find parent of a nested child", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           {
@@ -53,7 +53,7 @@ describe("getParent function", () => {
     })
 
     test("should return undefined when node is not found", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }, { id: "child2" }],
       }
@@ -81,7 +81,7 @@ describe("getParent function", () => {
     })
 
     test("should handle nodes with no children", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         // No children array at all
       }
@@ -95,7 +95,7 @@ describe("getParent function", () => {
     })
 
     test("should handle empty children arrays", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [], // Empty array
       }
@@ -109,7 +109,7 @@ describe("getParent function", () => {
     })
 
     test("should use depth parameter in testFn", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           {
@@ -128,7 +128,7 @@ describe("getParent function", () => {
     })
 
     test("should use parent parameter in testFn", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           {
@@ -222,7 +222,7 @@ describe("getParent function", () => {
   // // Test copy option
   // describe("copy option", () => {
   //   test("should copy the tree when copy is true", () => {
-  //     const originalTree: Node = {
+  //     const originalTree: Node<"children"> = {
   //       id: "root",
   //       children: [{ id: "child1" }],
   //     }
@@ -243,7 +243,7 @@ describe("getParent function", () => {
   //   })
 
   //   test("should not copy the tree when copy is false", () => {
-  //     const originalTree: Node = {
+  //     const originalTree: Node<"children"> = {
   //       id: "root",
   //       children: [{ id: "child1" }],
   //     }
@@ -267,7 +267,7 @@ describe("getParent function", () => {
   // Edge cases
   describe("edge cases", () => {
     test("should handle complex trees with multiple matching conditions", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           {
@@ -292,7 +292,7 @@ describe("getParent function", () => {
 
     test("should handle deeply nested trees", () => {
       // Create a deeply nested tree with 10 levels
-      let tree: Node = { id: "level0" }
+      let tree: Node<"children"> = { id: "level0" }
       let currentNode = tree
 
       for (let i = 1; i <= 10; i++) {
@@ -315,7 +315,7 @@ describe("getParent function", () => {
     test("should handle trees with multiple paths to similar nodes", () => {
       const commonNode = { id: "common" }
 
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           {
@@ -346,8 +346,8 @@ describe("getParent function", () => {
 
     test("should handle circular references safely", () => {
       // Create a tree with circular references
-      const tree: Node = { id: "root" }
-      const child: Node = { id: "child" }
+      const tree: Node<"children"> = { id: "root" }
+      const child: Node<"children"> = { id: "child" }
       tree.children = [child]
 
       // Create circular reference - child points back to root

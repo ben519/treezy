@@ -5,7 +5,7 @@ describe("prune function", () => {
   // Basic tests with generic nodes
   describe("with generic Node type", () => {
     test("should return null when root node matches test function", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }, { id: "child2" }],
       }
@@ -19,7 +19,7 @@ describe("prune function", () => {
     })
 
     test("should remove children that match test function", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }, { id: "child2" }, { id: "removeMe" }],
       }
@@ -38,7 +38,7 @@ describe("prune function", () => {
     })
 
     test("should handle deeply nested structure", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           {
@@ -88,7 +88,7 @@ describe("prune function", () => {
     })
 
     test("should handle nodes with no children", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         value: 42,
       }
@@ -102,7 +102,7 @@ describe("prune function", () => {
     })
 
     test("should handle empty children array", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [],
       }
@@ -179,7 +179,7 @@ describe("prune function", () => {
   // Advanced tests
   describe("advanced behavior", () => {
     test("should have access to parent node in test function", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [
           {
@@ -202,7 +202,7 @@ describe("prune function", () => {
     })
 
     test("should have access to depth in test function", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root", // depth 0
         children: [
           {
@@ -227,7 +227,7 @@ describe("prune function", () => {
     })
 
     test("should not modify the original tree when copy option is implemented", () => {
-      const tree: Node = {
+      const tree: Node<"children"> = {
         id: "root",
         children: [{ id: "child1" }, { id: "removeMe" }, { id: "child2" }],
       }
@@ -257,13 +257,13 @@ describe("prune function", () => {
     })
 
     // test("should handle circular references gracefully", () => {
-    //   const tree: Node = {
+    //   const tree: Node<"children"> = {
     //     id: "root",
     //     children: [],
     //   }
 
     //   // Create a circular reference
-    //   const child: Node = { id: "child", children: [] }
+    //   const child: Node<"children"> = { id: "child", children: [] }
     //   tree.children?.push(child)
     //   child.children?.push(tree as Node)
 
@@ -275,7 +275,7 @@ describe("prune function", () => {
 
     test("should handle very deep trees without stack overflow", () => {
       // Create a very deep tree
-      let deepTree: Node = { id: "root" }
+      let deepTree: Node<"children"> = { id: "root" }
       let current = deepTree
 
       // Create a tree with 1000 levels (adjust based on typical stack limits)

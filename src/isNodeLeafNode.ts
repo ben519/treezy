@@ -10,7 +10,7 @@ export function isNodeLeafNode<
 >(
   node: TNode,
   options: Options<TChildrenKey>
-): node is LeafNode<TChildrenKey, TNode> {
+): node is TNode & LeafNode<TChildrenKey> {
   // Destructure options
   const { childrenKey } = options
 

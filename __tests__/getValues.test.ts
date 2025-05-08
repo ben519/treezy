@@ -1,5 +1,5 @@
 import { getValues } from "../src/getValues"
-import { Node, UniformNode } from "../src/types"
+import { UniformNode } from "../src/types"
 
 describe("getValues function", () => {
   // Basic tree structure for testing
@@ -65,7 +65,7 @@ describe("getValues function", () => {
   const singleNodeTree = { id: 1, name: "single" }
 
   test("collects all nodes by default", () => {
-    const result = getValues(basicTree)
+    const result = getValues(basicTree, { childrenKey: "children" })
     expect(result).toHaveLength(5)
     expect(result).toEqual([
       basicTree,
@@ -79,7 +79,7 @@ describe("getValues function", () => {
   test("applies testFn to filter nodes", () => {
     const result = getValues(basicTree, {
       childrenKey: "children",
-      testFn: (x: Node & { id: number }) => x.id % 2 === 1,
+      testFn: (x) => x.id % 2 === 1,
     })
     expect(result).toHaveLength(3)
     expect(result.map((node) => node.id)).toEqual([1, 5, 3])
@@ -102,7 +102,7 @@ describe("getValues function", () => {
   test("combines testFn and getFn", () => {
     const result = getValues(basicTree, {
       childrenKey: "children",
-      testFn: (x: Node & { id: number }) => x.id % 2 === 0, // Only even IDs
+      testFn: (x) => x.id % 2 === 0, // Only even IDs
       getFn: (node) => node.name,
     })
     expect(result).toEqual(["child1", "grandchild1"])
@@ -123,7 +123,7 @@ describe("getValues function", () => {
   })
 
   test("handles single node tree (no children)", () => {
-    const result = getValues(singleNodeTree)
+    const result = getValues(singleNodeTree, { childrenKey: "children" })
     expect(result).toHaveLength(1)
     expect(result[0]).toEqual(singleNodeTree)
   })
@@ -176,7 +176,7 @@ describe("getValues function", () => {
   })
 
   test("does not create copy by default", () => {
-    const result = getValues(basicTree)
+    const result = getValues(basicTree, { childrenKey: "children" })
 
     // Modify the first result
     if (result[0].children && result[0].children.length > 0) {
@@ -207,7 +207,7 @@ describe("getValues function", () => {
       children: [],
     }
 
-    const result = getValues(treeWithEmptyChildren)
+    const result = getValues(treeWithEmptyChildren, { childrenKey: "children" })
     expect(result).toHaveLength(1)
     expect(result[0]).toEqual(treeWithEmptyChildren)
   })

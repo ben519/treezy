@@ -5,22 +5,24 @@ describe("isNodeLeafNode", () => {
   const childrenKey = "children" as const
 
   it("returns true for a node with undefined children", () => {
-    const node: Node = {}
+    const node: Node<"children"> = {}
     expect(isNodeLeafNode(node, { childrenKey })).toBe(true)
   })
 
   it("returns true for a node with an empty array as children", () => {
-    const node: Node = { children: [] }
+    const node: Node<"children"> = { children: [] }
     expect(isNodeLeafNode(node, { childrenKey })).toBe(true)
   })
 
   it("returns false for a node with non-empty children array", () => {
-    const node: Node = { children: [{}] }
+    const node: Node<"children"> = { children: [{}] }
     expect(isNodeLeafNode(node, { childrenKey })).toBe(false)
   })
 
   it("returns false for a node with a non-array children value", () => {
-    const node: Node = { children: "not-an-array" as unknown as Node[] }
+    const node: Node<"children"> = {
+      children: "not-an-array" as unknown as Node<"children">[],
+    }
     expect(isNodeLeafNode(node, { childrenKey })).toBe(false)
   })
 

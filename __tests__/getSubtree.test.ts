@@ -3,7 +3,7 @@ import { Node, UniformNode } from "../src/types"
 
 describe("getSubtree", () => {
   // Basic tree structure for generic Node tests
-  const genericTree: Node = {
+  const genericTree: Node<"children"> = {
     id: "root",
     value: "Root Node",
     children: [
@@ -182,7 +182,7 @@ describe("getSubtree", () => {
   // Edge cases
   describe("edge cases", () => {
     test("handles empty tree", () => {
-      const emptyTree: Node = { id: "empty" }
+      const emptyTree: Node<"children"> = { id: "empty" }
 
       const result = getSubtree(emptyTree, {
         childrenKey: "children",
@@ -201,7 +201,7 @@ describe("getSubtree", () => {
     })
 
     test("handles null children array", () => {
-      const treeWithNullChildren: Node = {
+      const treeWithNullChildren: Node<"children"> = {
         id: "root",
         value: "Root Node",
         children: null as any,
@@ -217,7 +217,7 @@ describe("getSubtree", () => {
     })
 
     test("handles undefined children array", () => {
-      const treeWithUndefinedChildren: Node = {
+      const treeWithUndefinedChildren: Node<"children"> = {
         id: "root",
         value: "Root Node",
         // children is undefined

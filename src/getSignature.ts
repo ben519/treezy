@@ -3,10 +3,7 @@ import { NodeWithId } from "./types.js"
 /**
  * Configuration options for signature generation
  */
-interface Options<
-  TChildrenKey extends string = "children",
-  TIdKey extends string = "id"
-> {
+interface Options<TChildrenKey extends string, TIdKey extends string = "id"> {
   /**
    * Property name to use as the node identifier in the tree
    * Must exist on all nodes in the tree
@@ -39,7 +36,7 @@ interface Options<
 }
 
 export function getSignature<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TIdKey extends string = "id",
   TId = string | number | symbol,
   TInputNode extends NodeWithId<TChildrenKey, TIdKey, TId> = NodeWithId<

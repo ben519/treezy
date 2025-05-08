@@ -4,18 +4,18 @@ import { NodeWithId } from "../src/types"
 describe("getSignature", () => {
   // Simple test with default options
   test("should generate signature for simple tree with default options", () => {
-    const tree: NodeWithId = {
+    const tree: NodeWithId<"children", "id"> = {
       id: "root",
       children: [{ id: "child1" }, { id: "child2" }],
     }
 
-    const result = getSignature(tree)
+    const result = getSignature(tree, { childrenKey: "children" })
     expect(result).toBe("root[child1,child2]")
   })
 
   // Test nested tree structure
   test("should generate signature for nested tree structure", () => {
-    const tree: NodeWithId = {
+    const tree: NodeWithId<"children", "id"> = {
       id: "root",
       children: [
         {
@@ -26,13 +26,13 @@ describe("getSignature", () => {
       ],
     }
 
-    const result = getSignature(tree)
+    const result = getSignature(tree, { childrenKey: "children" })
     expect(result).toBe("root[child1[grandchild1,grandchild2],child2]")
   })
 
   // Test with custom options
   test("should generate signature with custom options", () => {
-    const tree: NodeWithId = {
+    const tree: NodeWithId<"children", "id"> = {
       id: "root",
       children: [{ id: "child1" }, { id: "child2" }],
     }
@@ -49,7 +49,7 @@ describe("getSignature", () => {
 
   // Test with custom children key
   test("should generate signature with custom childrenKey", () => {
-    interface CustomNode extends NodeWithId<"items"> {
+    interface CustomNode extends NodeWithId<"items", "id"> {
       id: string
       items?: CustomNode[]
     }
@@ -94,7 +94,7 @@ describe("getSignature", () => {
       children: [{ id: 2 }, { id: 3, children: [{ id: 4 }] }],
     }
 
-    const result = getSignature(tree)
+    const result = getSignature(tree, { childrenKey: "children" })
     expect(result).toBe("1[2,3[4]]")
   })
 
@@ -139,34 +139,34 @@ describe("getSignature", () => {
 
   // Test leaf node (no children)
   test("should handle leaf nodes correctly", () => {
-    const tree: NodeWithId = {
+    const tree: NodeWithId<"children", "id"> = {
       id: "leaf",
       someData: "extra info",
     }
 
-    const result = getSignature(tree)
+    const result = getSignature(tree, { childrenKey: "children" })
     expect(result).toBe("leaf")
   })
 
   // Test with empty children array
   test("should handle nodes with empty children array", () => {
-    const tree: NodeWithId = {
+    const tree: NodeWithId<"children", "id"> = {
       id: "root",
       children: [],
     }
 
-    const result = getSignature(tree)
+    const result = getSignature(tree, { childrenKey: "children" })
     expect(result).toBe("root")
   })
 
   // Test with undefined children
   test("should handle nodes with undefined children", () => {
-    const tree: NodeWithId = {
+    const tree: NodeWithId<"children", "id"> = {
       id: "root",
       children: undefined,
     }
 
-    const result = getSignature(tree)
+    const result = getSignature(tree, { childrenKey: "children" })
     expect(result).toBe("root")
   })
 
@@ -185,7 +185,7 @@ describe("getSignature", () => {
       children: [{ id: ID_2 }],
     }
 
-    const result = getSignature(tree)
+    const result = getSignature(tree, { childrenKey: "children" })
     expect(result).toBe(`${String(ID_1)}[${String(ID_2)}]`)
   })
 })
