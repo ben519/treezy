@@ -1,225 +1,176 @@
-import { Node } from "./types.js"
+import { Node, UniformNode } from "./types.js"
 
-/**
- * Configuration options for inserting a subtree
- */
-interface Options<
+// Options for when the input tree is a generic Node
+interface GenericNodeOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+> {
+  nodeToInsert: TInputNode
+  testFn?: (
+    node: TInputNode,
+    parent?: TInputNode | null,
+    depth?: number
+  ) => boolean
+  direction?: "after" | "before" | "below"
+  copy?: boolean
+  childrenKey?: TChildrenKey
+}
+
+// Options specifically for when the input tree is a UniformNode
+interface UniformNodeOptions<
+  TChildrenKey extends string = "children",
+  TExtraProps extends object = {},
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
   >
 > {
-  /**
-   * The tree structure to insert
-   */
-  subtree?: TNode
-
-  /**
-   * Function to identify the target node
-   * @param node - The current node being tested
-   * @param parent - The parent node of the current node, if any
-   * @param depth - The depth of the current node in the tree (0-based)
-   * @returns boolean indicating whether this is the target node
-   */
-  testFn: (
-    node: Node<TChildrenKey, TExtraProps>,
-    parent?: Node<TChildrenKey, TExtraProps> | null,
+  nodeToInsert: TInputNode
+  testFn?: (
+    node: TInputNode,
+    parent?: TInputNode | null,
     depth?: number
   ) => boolean
-
-  /**
-   * Where to insert the subtree relative to the matching node
-   * @default "below"
-   */
   direction?: "after" | "before" | "below"
-
-  /**
-   * Whether to create deep copies of both trees before modifying.
-   * Set to false to modify the original trees.
-   * @default true
-   */
   copy?: boolean
-
-  /**
-   * Name of the array property in tree that stores the child nodes
-   * @default "children"
-   */
   childrenKey?: TChildrenKey
 }
 
-/**
- * Inserts a subtree into a tree at a position relative to a node matching the given test condition.
- *
- * @param tree - The root node of the tree to modify
- * @param options - Configuration options for inserting the subtree
- * @param options.subtree - The tree structure to insert
- * @param options.testFn - Function to identify the target node
- * @param options.direction - Where to insert relative to the matching node:
- *   - "below": As last child of the matching node (default)
- *   - "before": As previous sibling of the matching node
- *   - "after": As next sibling of the matching node
- * @param options.copy - Whether to create deep copies of both trees before modifying (defaults to true)
- *
- * @returns The modified tree structure
- *
- * @throws {Error} If subtree or testFn is not provided in options
- * @throws {Error} If attempting to insert before/after the root node
- *
- * @example
- * const tree = {
- *   id: 1,
- *   children: [{
- *     id: 2,
- *     children: []
- *   }]
- * };
- *
- * const newSubtree = {
- *   id: 3,
- *   children: []
- * };
- *
- * // Insert as child of node with id 2
- * const result1 = insert(tree, {
- *   subtree: newSubtree,
- *   testFn: node => node.id === 2,
- *   direction: "below"
- * });
- *
- * // Insert before node with id 2
- * const result2 = insert(tree, {
- *   subtree: newSubtree,
- *   testFn: node => node.id === 2,
- *   direction: "before"
- * });
- *
- * // Insert without copying (modifies original tree)
- * const result3 = insert(tree, {
- *   subtree: newSubtree,
- *   testFn: node => node.id === 2,
- *   copy: false
- * });
- */
-export function insert<
+// --- Helper Options ---
+// This interface defines the shape of options the recursive helper will use.
+// TCurrentNode represents the type of the node currently being processed by the helper.
+interface HelperOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
-    TChildrenKey,
-    TExtraProps
-  >
->(tree: TNode, options: Options<TChildrenKey, TExtraProps, TNode>): TNode {
-  const node = options?.copy === false ? tree : structuredClone(tree)
-  const subtree =
-    options?.copy === false
-      ? options.subtree ?? tree
-      : structuredClone(options.subtree ?? tree)
-  const result = insertHelper<TChildrenKey, TExtraProps, TNode>(node, null, 0, {
-    childrenKey: "children" as TChildrenKey,
-    direction: "below",
-    ...options,
-    copy: true,
-    subtree,
-  })
-  return result ?? node
+  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
+> {
+  childrenKey: TChildrenKey
+  direction: "after" | "before" | "below"
+  nodeToInsert: TCurrentNode
+  testFn: (
+    node: TCurrentNode,
+    parent: TCurrentNode | null,
+    depth: number
+  ) => boolean
 }
 
-/**
- * Helper function that recursively traverses the tree to find the insertion point
- * and perform the insertion.
- *
- * @param tree - Current node being examined
- * @param options - Insertion configuration options
- * @param parent - Parent of the current node
- * @param depth - Current depth in the tree (0-based)
- * @returns The modified tree if insertion occurred in this subtree, null otherwise
- *
- * @internal
- * This is an internal helper function and should not be called directly.
- */
-function insertHelper<
+// --- insert Function Overloads ---
+
+// Overload 1: For UniformNode
+// When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
+export function insert<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+  TExtraProps extends object = {},
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
   >
 >(
-  node: TNode,
-  parent: TNode | null,
+  tree: TInputNode,
+  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
+): TInputNode | undefined
+
+// Overload 2: For generic Node (this comes after more specific overloads)
+// When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
+export function insert<
+  TChildrenKey extends string = "children",
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  tree: TInputNode,
+  options: GenericNodeOptions<TChildrenKey>
+): TInputNode | undefined
+
+// --- insert Implementation ---
+// This single implementation handles both overload cases.
+// TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
+export function insert<
+  TChildrenKey extends string = "children",
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  tree: TInputNode,
+  options:
+    | GenericNodeOptions<TChildrenKey, TInputNode>
+    | UniformNodeOptions<TChildrenKey, any, TInputNode>
+): TInputNode | undefined {
+  // Resolve defaults
+  const childrenKey: TChildrenKey =
+    options.childrenKey ?? ("children" as TChildrenKey)
+  const testFn = options.testFn ?? (() => true)
+  const direction = options.direction ?? "below"
+  const copy = options.copy ?? false
+  const nodeToInsert = options.nodeToInsert
+
+  // Prepare options for the internal recursive helper.
+  const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
+    childrenKey,
+    testFn,
+    direction,
+    nodeToInsert,
+  }
+
+  // Initial call to the recursive helper. TInputNode is the type of the root.
+  return insertHelper<TChildrenKey, TInputNode>(
+    copy ? structuredClone(tree) : tree,
+    null,
+    0,
+    helperOptions
+  )
+}
+
+function insertHelper<
+  TChildrenKey extends string = "children",
+  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  node: TCurrentNode,
+  parent: TCurrentNode | null,
   depth: number,
-  options: Required<Options<TChildrenKey, TExtraProps, TNode>>
-): TNode | null {
-  // Destructure options
-  const { subtree, testFn, direction, childrenKey } = options
+  options: HelperOptions<TChildrenKey, TCurrentNode>
+): TCurrentNode | undefined {
+  const { testFn, direction, childrenKey, nodeToInsert } = options
 
-  if (direction === "below") {
-    // If this node is a match, append subtree to this node's children and return
-    if (testFn(node, parent, depth)) {
-      node[childrenKey].push(subtree)
+  // If this node passes testFn, insert nodeToInsert
+  if (testFn(node, parent, depth)) {
+    if (["after", "before"].includes(direction)) {
+      if (parent === null) {
+        throw new Error(
+          "Cannot insert 'nodeToInsert' before the root of 'node'"
+        )
+      }
+
+      // Get the array of children containing this node
+      // Find the index of this node in the array
+      const childrenOfParent = parent[childrenKey]!
+      const idxOfNode = childrenOfParent.findIndex((x) => x === node)
+
+      // Insert nodeToInsert into the array
+      childrenOfParent.splice(
+        idxOfNode + direction === "before" ? 0 : 1,
+        0,
+        nodeToInsert
+      )
+
       return node
-    }
+    } else if (direction === "below") {
+      let childrenProp = node[childrenKey]
 
-    // Check each child of this node for the matching value
-    for (const [idx, child] of node[childrenKey].entries()) {
-      // Recursively call insertHelper() on this child node
-      const newChild = insertHelper(child, node, depth + 1, options)
-
-      if (newChild !== null) {
-        // Found the subtree with the matching node
-
-        node[childrenKey].splice(idx, 1, newChild)
-        return node
-      }
-    }
-  } else if (direction === "before") {
-    // If this node has the matching value...
-    if (testFn(node, parent, depth)) {
-      throw new Error("Cannot insert subtree before the root of tree")
-    }
-
-    // Check each child of this node for the matching value
-    for (const [idx, child] of node[childrenKey].entries()) {
-      if (testFn(child, node, depth + 1)) {
-        // Found the matching node
-
-        node[childrenKey].splice(idx, 0, subtree)
-        return node
+      if (childrenProp === undefined) {
+        ;(node[childrenKey] as TCurrentNode[]) = [nodeToInsert]
       } else {
-        // Recursively call insertHelper() on this child node
-        const newChild = insertHelper(child, node, depth + 1, options)
-
-        if (newChild !== null) {
-          // Found the subtree with the matching node
-          return node
-        }
+        childrenProp.push(nodeToInsert)
       }
-    }
-  } else if (direction === "after") {
-    // If this node has the matching value...
-    if (testFn(node, parent, depth)) {
-      throw new Error("Cannot insert subtree after the root of tree")
-    }
 
-    for (const [idx, child] of node[childrenKey].entries()) {
-      if (testFn(child, node, depth + 1)) {
-        // Found the matching node
-
-        node[childrenKey].splice(idx + 1, 0, subtree)
-        return node
-      } else {
-        // Recursively call insertHelper() on this child node
-        const newChild = insertHelper(child, node, depth + 1, options)
-
-        if (newChild !== null) {
-          // Found the subtree with the matching node
-
-          return node
-        }
-      }
+      return node
     }
   }
 
-  return null
+  // Get the children array
+  const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
+
+  // Recursively check each child subtree
+  for (const child of childrenArray ?? []) {
+    const wasInserted = insertHelper(child, node, depth + 1, options)
+    if (wasInserted) return node
+  }
+
+  // If we made it this far, this tree doesn't have a matching node
+  return undefined
 }

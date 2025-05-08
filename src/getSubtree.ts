@@ -1,130 +1,136 @@
-import { Node } from "./types.js"
+import { Node, UniformNode } from "./types.js"
 
-/**
- * Configuration options for finding a subtree
- */
-interface Options<
+// Options for when the input tree is a generic Node
+interface GenericNodeOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {}
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
-  /**
-   * Function to test each node in the tree
-   * @param node - The current node being tested
-   * @param parent - The parent node of the current node, if any
-   * @param depth - The depth of the current node in the tree (0-based)
-   * @returns boolean indicating whether this is the target node
-   */
-  testFn: (
-    node: Node<TChildrenKey, TExtraProps>,
-    parent?: Node<TChildrenKey, TExtraProps> | null,
+  testFn?: (
+    node: TInputNode,
+    parent?: TInputNode | null,
     depth?: number
   ) => boolean
-
-  /**
-   * Whether to create a deep copy of the tree before searching.
-   * Set to false to modify the original tree.
-   * @default true
-   */
   copy?: boolean
-
-  /**
-   * Name of the array property in tree that stores the child nodes
-   * @default "children"
-   */
   childrenKey?: TChildrenKey
 }
 
-/**
- * Finds and returns the first subtree in a tree structure where the root node matches
- * the given test condition.
- *
- * @param tree - The root node of the tree to search
- * @param options - Configuration options for finding the subtree
- * @param options.testFn - Function to identify the target node
- * @param options.copy - Whether to create a deep copy of the tree before searching (defaults to true)
- *
- * @returns The matching subtree, or null if no matching node is found
- *
- * @throws {Error} If no testFn is provided in options
- *
- * @example
- * const tree = {
- *   value: 'root',
- *   children: [{
- *     value: 'target',
- *     children: [{
- *       value: 'child',
- *       children: []
- *     }]
- *   }]
- * };
- *
- * // Find subtree with root value 'target'
- * const subtree = getSubtree(tree, {
- *   testFn: (node) => node.value === 'target'
- * });
- * // Returns the 'target' node and all its descendants
- *
- * // Use without copying (modifies original tree)
- * const subtree = getSubtree(tree, {
- *   testFn: (node) => node.value === 'target',
- *   copy: false
- * });
- */
-export function getSubtree<
+// Options specifically for when the input tree is a UniformNode
+interface UniformNodeOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+  TExtraProps extends object = {},
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
   >
->(tree: TNode, options: Options<TChildrenKey, TExtraProps>): TNode | null {
-  const node = options?.copy === false ? tree : structuredClone(tree)
-  return getSubtreeHelper(node, null, 0, {
-    childrenKey: "children" as TChildrenKey,
-    copy: false,
-    ...options,
-  })
+> {
+  testFn?: (
+    node: TInputNode,
+    parent?: TInputNode | null,
+    depth?: number
+  ) => boolean
+  copy?: boolean
+  childrenKey?: TChildrenKey
 }
 
-/**
- * Helper function that recursively traverses the tree to find a matching subtree.
- *
- * @param tree - Current node being examined
- * @param options - Search configuration options
- * @param parent - Parent of the current node
- * @param depth - Current depth in the tree (0-based)
- * @returns The matching subtree if found in this branch, null otherwise
- *
- * @internal
- * This is an internal helper function and should not be called directly.
- */
-function getSubtreeHelper<
+// --- Helper Options ---
+// This interface defines the shape of options the recursive helper will use.
+// TCurrentNode represents the type of the node currently being processed by the helper.
+interface HelperOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
+> {
+  childrenKey: TChildrenKey
+  testFn: (
+    node: TCurrentNode,
+    parent: TCurrentNode | null,
+    depth: number
+  ) => boolean
+}
+
+// --- getSubtree Function Overloads ---
+
+// Overload 1: For UniformNode
+// When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
+export function getSubtree<
+  TChildrenKey extends string = "children",
+  TExtraProps extends object = {},
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
   >
 >(
-  node: TNode,
-  parent: TNode | null,
+  tree: TInputNode,
+  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
+): TInputNode | undefined
+
+// Overload 2: For generic Node (this comes after more specific overloads)
+// When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
+export function getSubtree<
+  TChildrenKey extends string = "children",
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  tree: TInputNode,
+  options: GenericNodeOptions<TChildrenKey>
+): TInputNode | undefined
+
+// --- getSubtree Implementation ---
+// This single implementation handles both overload cases.
+// TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
+export function getSubtree<
+  TChildrenKey extends string = "children",
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  tree: TInputNode,
+  options:
+    | GenericNodeOptions<TChildrenKey, TInputNode>
+    | UniformNodeOptions<TChildrenKey, any, TInputNode>
+): TInputNode | undefined {
+  // Resolve defaults
+  const childrenKey: TChildrenKey =
+    options.childrenKey ?? ("children" as TChildrenKey)
+  const testFn = options?.testFn ?? (() => true)
+  const copy = options.copy ?? false
+
+  // Prepare options for the internal recursive helper.
+  const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
+    childrenKey,
+    testFn,
+  }
+
+  // Initial call to the recursive helper. TInputNode is the type of the root.
+  return getSubtreeHelper<TChildrenKey, TInputNode>(
+    copy ? structuredClone(tree) : tree,
+    null,
+    0,
+    helperOptions
+  )
+}
+
+function getSubtreeHelper<
+  TChildrenKey extends string = "children",
+  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  node: TCurrentNode,
+  parent: TCurrentNode | null,
   depth: number,
-  options: Required<Options<TChildrenKey, TExtraProps>>
-): TNode | null {
+  options: HelperOptions<TChildrenKey, TCurrentNode>
+): TCurrentNode | undefined {
   const { testFn, childrenKey } = options
 
-  // Check if this node passes testFn
+  // If this node passes testFn, return it
   if (testFn(node, parent, depth)) {
     return node
   }
 
-  // Recursively check this node's children
-  for (const child of node[childrenKey]) {
-    const subtree = getSubtreeHelper(child as TNode, node, depth + 1, options)
+  // Get the children array
+  const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
+
+  // Recursively check each child subtree
+  for (const child of childrenArray ?? []) {
+    const subtree = getSubtreeHelper(child, node, depth + 1, options)
     if (subtree) return subtree
   }
 
-  // If we made it here, no nodes have the condition
-  return null
+  // If we made it this far, this tree doesn't have a matching node
+  return undefined
 }
