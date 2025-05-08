@@ -6,9 +6,12 @@ interface Options<TChildrenKey extends string> {
   childrenKey: TChildrenKey
 }
 
-export function isUniformNode<TChildrenKey extends string>(
+export function isUniformNode<
+  TChildrenKey extends string,
+  TExtraProps extends object
+>(
   value: unknown,
   options: Options<TChildrenKey>
-): value is UniformNode<TChildrenKey> {
+): value is UniformNode<TChildrenKey, TExtraProps> {
   return isNode(value, options) && isNodeUniformNode(value, options)
 }

@@ -4,13 +4,10 @@ interface Options<TChildrenKey extends string> {
   childrenKey: TChildrenKey
 }
 
-export function isNodeLeafNode<
-  TChildrenKey extends string,
-  TNode extends Node<TChildrenKey> = Node<TChildrenKey>
->(
-  node: TNode,
+export function isNodeLeafNode<TChildrenKey extends string>(
+  node: Node<TChildrenKey>,
   options: Options<TChildrenKey>
-): node is TNode & LeafNode<TChildrenKey> {
+): node is LeafNode<TChildrenKey> {
   // Destructure options
   const { childrenKey } = options
 

@@ -8,11 +8,12 @@ interface Options<TChildrenKey extends string, TIdKey extends string> {
 export function isNodeWithId<
   TChildrenKey extends string,
   TIdKey extends string,
-  TId = string | number | symbol
+  TId = string | number | symbol,
+  TExtraProps extends object = { [key: string]: unknown }
 >(
   value: unknown,
   options: Options<TChildrenKey, TIdKey>
-): value is NodeWithId<TChildrenKey, TIdKey, TId> {
+): value is NodeWithId<TChildrenKey, TIdKey, TId, TExtraProps> {
   // Check if value is a non-null object
   if (typeof value !== "object" || value === null) return false
 
