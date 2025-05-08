@@ -1,7 +1,11 @@
 import { isNode } from "../src/isNode"
+import { Node } from "../src/types"
 
-describe("isNode (with type narrowing)", () => {
+describe("isNode", () => {
+  const childrenKey = "children" as const
+  const baseOptions = { childrenKey }
   const options = { childrenKey: "children" }
+  type TestNode = Node<typeof childrenKey>
 
   it("narrows the type of a valid leaf node", () => {
     const maybeNode: unknown = { name: "Leaf" }
@@ -56,5 +60,50 @@ describe("isNode (with type narrowing)", () => {
     if (isNode(maybeNode, options)) {
       fail("Invalid node should not have passed the type guard")
     }
+  })
+
+  it("returns true for a valid node without children", () => {
+    const node = { name: "Root" }
+    expect(isNode(node, baseOptions)).toBe(true)
+  })
+
+  it("returns true for a valid node with valid children", () => {
+    const node: TestNode = {
+      name: "Root",
+      children: [{ name: "Child" }],
+    }
+    expect(isNode(node, baseOptions)).toBe(true)
+  })
+
+  it("returns false if children is not an array", () => {
+    const node = {
+      name: "Root",
+      children: "not-an-array",
+    }
+    expect(isNode(node, baseOptions)).toBe(false)
+  })
+
+  it("returns false for a child that is not a valid node", () => {
+    const node = {
+      name: "Root",
+      children: [null, { name: "Valid Child" }],
+    }
+    expect(isNode(node, baseOptions)).toBe(false)
+  })
+
+  it("detects circular reference and throws by default (checkForCircularReference = true)", () => {
+    const a: any = { name: "A" }
+    const b: any = { name: "B", children: [a] }
+    a.children = [b] // Circular reference
+
+    expect(() => isNode(a, baseOptions)).toThrow(
+      "Circular reference detected in tree."
+    )
+  })
+
+  it("returns false for non-object input", () => {
+    expect(isNode(null, baseOptions)).toBe(false)
+    expect(isNode("string", baseOptions)).toBe(false)
+    expect(isNode(123, baseOptions)).toBe(false)
   })
 })

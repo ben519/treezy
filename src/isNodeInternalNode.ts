@@ -4,10 +4,13 @@ interface Options<TChildrenKey extends string> {
   childrenKey: TChildrenKey
 }
 
-export function isNodeInternalNode<TChildrenKey extends string>(
-  node: Node<TChildrenKey>,
+export function isNodeInternalNode<
+  TChildrenKey extends string,
+  TExtraProps extends object = { [key: string]: unknown }
+>(
+  node: Node<TChildrenKey, TExtraProps>,
   options: Options<TChildrenKey>
-): node is InternalNode<TChildrenKey> {
+): node is InternalNode<TChildrenKey, TExtraProps> {
   // Destructure options
   const { childrenKey } = options
 

@@ -1,9 +1,10 @@
 import { isNode } from "./isNode.js"
 import { isNodeUniformNode } from "./isNodeUniformNode.js"
-import { UniformNode } from "./types.js"
+import { Node, UniformNode } from "./types.js"
 
 interface Options<TChildrenKey extends string> {
   childrenKey: TChildrenKey
+  checkForCircularReference?: boolean
 }
 
 export function isUniformNode<
@@ -13,5 +14,17 @@ export function isUniformNode<
   value: unknown,
   options: Options<TChildrenKey>
 ): value is UniformNode<TChildrenKey, TExtraProps> {
-  return isNode(value, options) && isNodeUniformNode(value, options)
+  const { checkForCircularReference = true, childrenKey } = options
+
+  return (
+    isNode<TChildrenKey, TExtraProps>(value, {
+      childrenKey,
+      checkForCircularReference,
+    }) &&
+    isNodeUniformNode<
+      TChildrenKey,
+      TExtraProps,
+      Node<TChildrenKey, TExtraProps>
+    >(value, { childrenKey })
+  )
 }

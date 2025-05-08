@@ -4,10 +4,13 @@ interface Options<TChildrenKey extends string> {
   childrenKey: TChildrenKey
 }
 
-export function isNodeLeafNode<TChildrenKey extends string>(
-  node: Node<TChildrenKey>,
+export function isNodeLeafNode<
+  TChildrenKey extends string,
+  TExtraProps extends object = { [key: string]: unknown }
+>(
+  node: Node<TChildrenKey, TExtraProps>,
   options: Options<TChildrenKey>
-): node is LeafNode<TChildrenKey> {
+): node is LeafNode<TChildrenKey, TExtraProps> {
   // Destructure options
   const { childrenKey } = options
 

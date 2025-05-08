@@ -6,6 +6,18 @@ describe("isNodeWithId", () => {
     idKey: "id",
   }
 
+  const optionsWithCircularCheck = {
+    childrenKey: "children",
+    idKey: "id",
+    checkForCircularReference: true,
+  }
+
+  const optionsWithoutCircularCheck = {
+    childrenKey: "children",
+    idKey: "id",
+    checkForCircularReference: false,
+  }
+
   test("returns false for non-object values", () => {
     expect(isNodeWithId(null, options)).toBe(false)
     expect(isNodeWithId(undefined, options)).toBe(false)
@@ -180,4 +192,22 @@ describe("isNodeWithId", () => {
     }
     expect(isNodeWithId(nodeWithExtraProps, options)).toBe(true)
   })
+
+  test("detects circular references and throws error with checkForCircularReference = true", () => {
+    const a: any = { id: "a" }
+    const b: any = { id: "b", children: [a] }
+    a.children = [b] // Circular reference
+
+    expect(() => isNodeWithId(a, optionsWithCircularCheck)).toThrow(
+      "Circular reference detected in tree."
+    )
+  })
+
+  // test("does not throw for circular references with checkForCircularReference = false", () => {
+  //   const a: any = { id: "a" }
+  //   const b: any = { id: "b", children: [a] }
+  //   a.children = [b] // Circular reference
+
+  //   expect(isNodeWithId(a, optionsWithoutCircularCheck)).toBe(true)
+  // })
 })
