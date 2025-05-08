@@ -5,11 +5,11 @@ interface GenericNodeOptions<
   TChildrenKey extends string = "children",
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
-  applyFn: (node: TInputNode, parent?: TInputNode | null, depth?: number) => any
+  applyFn: (node: TInputNode, parent: TInputNode | null, depth: number) => any
   testFn?: (
     node: TInputNode,
-    parent?: TInputNode | null,
-    depth?: number
+    parent: TInputNode | null,
+    depth: number
   ) => boolean
   copy?: boolean
   childrenKey?: TChildrenKey
@@ -24,11 +24,11 @@ interface UniformNodeOptions<
     TExtraProps
   >
 > {
-  applyFn: (node: TInputNode, parent?: TInputNode | null, depth?: number) => any
+  applyFn: (node: TInputNode, parent: TInputNode | null, depth: number) => any
   testFn?: (
     node: TInputNode,
-    parent?: TInputNode | null,
-    depth?: number
+    parent: TInputNode | null,
+    depth: number
   ) => boolean
   copy?: boolean
   childrenKey?: TChildrenKey
@@ -43,8 +43,8 @@ interface HelperOptions<
 > {
   applyFn: (
     node: TCurrentNode,
-    parent?: TCurrentNode | null,
-    depth?: number
+    parent: TCurrentNode | null,
+    depth: number
   ) => any
   childrenKey: TChildrenKey
   testFn: (

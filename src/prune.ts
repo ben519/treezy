@@ -1,125 +1,126 @@
-import { Node } from "./types.js"
+import { Node, UniformNode } from "./types.js"
 
-/**
- * Configuration options for pruning nodes from a tree
- */
-interface Options<
+// Options for when the input tree is a generic Node
+interface GenericNodeOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {}
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
-  /**
-   * Function to identify nodes that should be removed
-   * @param node - The current node being tested
-   * @param parent - The parent node of the current node, if any
-   * @param depth - The depth of the current node in the tree (0-based)
-   * @returns boolean indicating whether this node should be removed
-   */
   testFn: (
-    node: Node<TChildrenKey, TExtraProps>,
-    parent?: Node<TChildrenKey, TExtraProps> | null,
-    depth?: number
+    node: TInputNode,
+    parent: TInputNode | null,
+    depth: number
   ) => boolean
-
-  /**
-   * Whether to create a deep copy of the tree before modifying.
-   * Set to false to modify the original tree.
-   * @default true
-   */
   copy?: boolean
-
-  /**
-   * Name of the array property in tree that stores the child nodes
-   * @default "children"
-   */
   childrenKey?: TChildrenKey
 }
 
-/**
- * Removes (prunes) all nodes from a tree that match a given test condition.
- * When a node is pruned, all of its descendants are also removed.
- *
- * @param tree - The root node of the tree to prune
- * @param options - Configuration options for pruning
- * @param options.testFn - Function to identify nodes that should be removed
- * @param options.copy - Whether to create a deep copy of the tree before modifying (defaults to true)
- *
- * @returns The pruned tree, or null if the root node matches the test condition
- *
- * @throws {Error} If no testFn is provided in options
- *
- * @example
- * const tree = {
- *   id: 1,
- *   type: 'root',
- *   children: [{
- *     id: 2,
- *     type: 'temp',
- *     children: [{
- *       id: 3,
- *       type: 'permanent',
- *       children: []
- *     }]
- *   }]
- * };
- *
- * // Remove all temporary nodes
- * const result1 = prune(tree, {
- *   testFn: node => node.type === 'temp'
- * });
- * // Result keeps root and removes node 2 and its descendants
- *
- * // Prune without copying (modifies original tree)
- * const result2 = prune(tree, {
- *   testFn: node => node.type === 'temp',
- *   copy: false
- * });
- *
- * // If root matches condition, returns null
- * const result3 = prune(tree, {
- *   testFn: node => node.id === 1
- * }); // Returns null
- */
-export function prune<
+// Options specifically for when the input tree is a UniformNode
+interface UniformNodeOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+  TExtraProps extends object = {},
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
   >
->(tree: TNode, options: Options<TChildrenKey, TExtraProps>): TNode | null {
-  const node = options?.copy === false ? tree : structuredClone(tree)
-  return pruneHelper(node, null, 0, {
-    childrenKey: "children" as TChildrenKey,
-    copy: false,
-    ...options,
-  })
+> {
+  testFn: (
+    node: TInputNode,
+    parent: TInputNode | null,
+    depth: number
+  ) => boolean
+  copy?: boolean
+  childrenKey?: TChildrenKey
 }
 
-/**
- * Helper function that recursively traverses the tree to remove matching nodes.
- *
- * @param tree - Current node being examined
- * @param options - Pruning configuration options
- * @param parent - Parent of the current node
- * @param depth - Current depth in the tree (0-based)
- * @returns The modified tree if this node should be kept, null if it should be removed
- *
- * @internal
- * This is an internal helper function and should not be called directly.
- */
-function pruneHelper<
+// --- Helper Options ---
+// This interface defines the shape of options the recursive helper will use.
+// TCurrentNode represents the type of the node currently being processed by the helper.
+interface HelperOptions<
   TChildrenKey extends string = "children",
-  TExtraProps extends Record<string, unknown> = {},
-  TNode extends Node<TChildrenKey, TExtraProps> = Node<
+  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
+> {
+  childrenKey: TChildrenKey
+  testFn: (
+    node: TCurrentNode,
+    parent: TCurrentNode | null,
+    depth: number
+  ) => boolean
+}
+
+// --- prune Function Overloads ---
+
+// Overload 1: For UniformNode
+// When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
+export function prune<
+  TChildrenKey extends string = "children",
+  TExtraProps extends object = {},
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
     TChildrenKey,
     TExtraProps
   >
 >(
-  node: TNode,
-  parent: TNode | null,
+  tree: TInputNode,
+  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
+): TInputNode | null
+
+// Overload 2: For generic Node (this comes after more specific overloads)
+// When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
+export function prune<
+  TChildrenKey extends string = "children",
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  tree: TInputNode,
+  options: GenericNodeOptions<TChildrenKey>
+): TInputNode | null
+
+// --- prune Implementation ---
+// This single implementation handles both overload cases.
+// TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
+export function prune<
+  TChildrenKey extends string = "children",
+  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  tree: TInputNode,
+  options:
+    | GenericNodeOptions<TChildrenKey, TInputNode>
+    | UniformNodeOptions<TChildrenKey, any, TInputNode>
+): TInputNode | null {
+  // Resolve defaults
+  const childrenKey: TChildrenKey =
+    options.childrenKey ?? ("children" as TChildrenKey)
+  const testFn = options.testFn
+  const copy = options.copy ?? false
+
+  // Prepare options for the internal recursive helper.
+  // The 'testFn' passed to the helper is the one provided by the user (or the default),
+  // which has been correctly typed by the overload resolution based on 'tree'.
+  // We assert its type to match what `pruneHelper` expects for its `TCurrentNode`.
+  const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
+    childrenKey,
+    testFn,
+  }
+
+  // Initial call to the recursive helper. TInputNode is the type of the root.
+  return pruneHelper<TChildrenKey, TInputNode>(
+    copy ? structuredClone(tree) : tree,
+    null,
+    0,
+    helperOptions
+  )
+}
+
+// --- pruneHelper (Recursive Part) ---
+// TCurrentNode is the type of the node being processed in *this specific recursive step*.
+
+function pruneHelper<
+  TChildrenKey extends string = "children",
+  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  node: TCurrentNode,
+  parent: TCurrentNode | null,
   depth: number,
-  options: Required<Options<TChildrenKey, TExtraProps>>
-): TNode | null {
+  options: HelperOptions<TChildrenKey, TCurrentNode>
+): TCurrentNode | null {
   const { testFn, childrenKey } = options
 
   // Check if this node passes testFn
@@ -127,14 +128,19 @@ function pruneHelper<
     return null
   }
 
-  // Prune each child of this node
-  for (const [idx, child] of node[childrenKey].reverse().entries()) {
-    const newChild = pruneHelper(child, node, depth + 1, options)
+  // Get the children array
+  const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
 
-    // If the returned value is null, delete the child from tree[childrenKey]
-    if (newChild === null) {
-      node[childrenKey].splice(idx, 1)
-    }
+  // If this is a leaf node...
+  if (!childrenArray || childrenArray.length === 0) {
+    return node
+  }
+
+  // Prune each child of this node
+  for (let i = childrenArray.length - 1; i >= 0; i--) {
+    const child = childrenArray[i]
+    const newChild = pruneHelper(child, node, depth + 1, options)
+    if (newChild === null) childrenArray.splice(i, 1)
   }
 
   return node

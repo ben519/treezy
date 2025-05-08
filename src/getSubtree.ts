@@ -7,8 +7,8 @@ interface GenericNodeOptions<
 > {
   testFn?: (
     node: TInputNode,
-    parent?: TInputNode | null,
-    depth?: number
+    parent: TInputNode | null,
+    depth: number
   ) => boolean
   copy?: boolean
   childrenKey?: TChildrenKey
@@ -25,8 +25,8 @@ interface UniformNodeOptions<
 > {
   testFn?: (
     node: TInputNode,
-    parent?: TInputNode | null,
-    depth?: number
+    parent: TInputNode | null,
+    depth: number
   ) => boolean
   copy?: boolean
   childrenKey?: TChildrenKey

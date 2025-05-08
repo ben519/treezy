@@ -8,8 +8,8 @@ interface GenericNodeOptions<
   nodeToInsert: TInputNode
   testFn?: (
     node: TInputNode,
-    parent?: TInputNode | null,
-    depth?: number
+    parent: TInputNode | null,
+    depth: number
   ) => boolean
   direction?: "after" | "before" | "below"
   copy?: boolean
@@ -28,8 +28,8 @@ interface UniformNodeOptions<
   nodeToInsert: TInputNode
   testFn?: (
     node: TInputNode,
-    parent?: TInputNode | null,
-    depth?: number
+    parent: TInputNode | null,
+    depth: number
   ) => boolean
   direction?: "after" | "before" | "below"
   copy?: boolean

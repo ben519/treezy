@@ -7,10 +7,10 @@ interface GenericNodeOptions<
 > {
   testFn?: (
     node: TInputNode,
-    parent?: TInputNode | null,
-    depth?: number
+    parent: TInputNode | null,
+    depth: number
   ) => boolean
-  getFn?: (node: TInputNode, parent?: TInputNode | null, depth?: number) => any
+  getFn?: (node: TInputNode, parent: TInputNode | null, depth: number) => any
   copy?: boolean
   childrenKey?: TChildrenKey
 }
@@ -26,10 +26,10 @@ interface UniformNodeOptions<
 > {
   testFn?: (
     node: TInputNode,
-    parent?: TInputNode | null,
-    depth?: number
+    parent: TInputNode | null,
+    depth: number
   ) => boolean
-  getFn?: (node: TInputNode, parent?: TInputNode | null, depth?: number) => any
+  getFn?: (node: TInputNode, parent: TInputNode | null, depth: number) => any
   copy?: boolean
   childrenKey?: TChildrenKey
 }
@@ -43,14 +43,10 @@ interface HelperOptions<
 > {
   testFn: (
     node: TCurrentNode,
-    parent?: TCurrentNode | null,
-    depth?: number
+    parent: TCurrentNode | null,
+    depth: number
   ) => boolean
-  getFn: (
-    node: TCurrentNode,
-    parent?: TCurrentNode | null,
-    depth?: number
-  ) => any
+  getFn: (node: TCurrentNode, parent: TCurrentNode | null, depth: number) => any
   childrenKey: TChildrenKey
 }
 
@@ -93,7 +89,7 @@ export function getValues<
   const childrenKey: TChildrenKey =
     options?.childrenKey ?? ("children" as TChildrenKey)
   const testFn = options?.testFn ?? (() => true)
-  const getFn = options?.getFn ?? ((node: any) => node)
+  const getFn = options?.getFn ?? ((node) => node)
   const copy = options?.copy ?? false
 
   // Prepare options for the internal recursive helper.

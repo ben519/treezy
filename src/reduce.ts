@@ -8,8 +8,8 @@ interface GenericNodeOptions<
   reduceFn: (
     node: TInputNode,
     initialVal: any,
-    parent?: TInputNode | null,
-    depth?: number
+    parent: TInputNode | null,
+    depth: number
   ) => any
   initialVal: any
   childrenKey?: TChildrenKey
@@ -27,8 +27,8 @@ interface UniformNodeOptions<
   reduceFn: (
     node: TInputNode,
     initialVal: any,
-    parent?: TInputNode | null,
-    depth?: number
+    parent: TInputNode | null,
+    depth: number
   ) => any
   initialVal: any
   childrenKey?: TChildrenKey
@@ -45,8 +45,8 @@ interface HelperOptions<
   reduceFn: (
     node: TCurrentNode,
     initialVal: any,
-    parent?: TCurrentNode | null,
-    depth?: number
+    parent: TCurrentNode | null,
+    depth: number
   ) => any
   initialVal: any
 }
