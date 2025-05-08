@@ -132,7 +132,7 @@ describe("getDepth", () => {
   // Test case 8: Edge case - empty tree
   test("handles empty tree gracefully", () => {
     const emptyNode: any = {} // This doesn't match the Node interface but tests robustness
-    expect(() => getDepth(emptyNode)).not.toThrow()
+    expect(() => getDepth(emptyNode, { childrenKey: "children" })).not.toThrow()
   })
 
   // Test case 9: Deeply nested single-path tree

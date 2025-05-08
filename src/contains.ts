@@ -5,12 +5,12 @@ interface GenericNodeOptions<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  childrenKey: TChildrenKey
   testFn: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  childrenKey: TChildrenKey
 }
 
 // Options specifically for when the input tree is a UniformNode
@@ -22,12 +22,12 @@ interface UniformNodeOptions<
     TExtraProps
   >
 > {
+  childrenKey: TChildrenKey
   testFn: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  childrenKey: TChildrenKey
 }
 
 // --- Helper Options for contains ---
@@ -79,8 +79,7 @@ export function contains<
     | UniformNodeOptions<TChildrenKey, any, TInputNode>
 ): boolean {
   // Resolve defaults
-  const childrenKey: TChildrenKey =
-    options.childrenKey ?? ("children" as TChildrenKey)
+  const childrenKey = options.childrenKey
   const testFn = options.testFn
 
   // Prepare options for the internal recursive helper.
@@ -94,6 +93,7 @@ export function contains<
 }
 
 // --- containsHelper (Recursive Part) ---
+// TCurrentNode is the type of the node being processed in *this specific recursive step*.
 function containsHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>

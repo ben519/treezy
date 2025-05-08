@@ -5,13 +5,13 @@ interface GenericNodeOptions<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  childrenKey: TChildrenKey
+  copy?: boolean
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  copy?: boolean
-  childrenKey: TChildrenKey
 }
 
 // Options specifically for when the input tree is a UniformNode
@@ -23,13 +23,13 @@ interface UniformNodeOptions<
     TExtraProps
   >
 > {
+  childrenKey: TChildrenKey
+  copy?: boolean
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  copy?: boolean
-  childrenKey: TChildrenKey
 }
 
 // --- Helper Options ---
@@ -86,10 +86,9 @@ export function getSubtree<
     | UniformNodeOptions<TChildrenKey, any, TInputNode>
 ): TInputNode | undefined {
   // Resolve defaults
-  const childrenKey: TChildrenKey =
-    options.childrenKey ?? ("children" as TChildrenKey)
-  const testFn = options?.testFn ?? (() => true)
+  const childrenKey = options.childrenKey
   const copy = options.copy ?? false
+  const testFn = options?.testFn ?? (() => true)
 
   // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
@@ -106,6 +105,8 @@ export function getSubtree<
   )
 }
 
+// --- getSubtreeHelper (Recursive Part) ---
+// TCurrentNode is the type of the node being processed in *this specific recursive step*.
 function getSubtreeHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>

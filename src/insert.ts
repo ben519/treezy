@@ -5,15 +5,15 @@ interface GenericNodeOptions<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  childrenKey: TChildrenKey
+  copy?: boolean
+  direction?: "after" | "before" | "below"
   nodeToInsert: TInputNode
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  direction?: "after" | "before" | "below"
-  copy?: boolean
-  childrenKey: TChildrenKey
 }
 
 // Options specifically for when the input tree is a UniformNode
@@ -25,15 +25,15 @@ interface UniformNodeOptions<
     TExtraProps
   >
 > {
+  childrenKey: TChildrenKey
+  copy?: boolean
+  direction?: "after" | "before" | "below"
   nodeToInsert: TInputNode
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  direction?: "after" | "before" | "below"
-  copy?: boolean
-  childrenKey: TChildrenKey
 }
 
 // --- Helper Options ---
@@ -92,19 +92,18 @@ export function insert<
     | UniformNodeOptions<TChildrenKey, any, TInputNode>
 ): TInputNode | undefined {
   // Resolve defaults
-  const childrenKey: TChildrenKey =
-    options.childrenKey ?? ("children" as TChildrenKey)
-  const testFn = options.testFn ?? (() => true)
-  const direction = options.direction ?? "below"
+  const childrenKey = options.childrenKey
   const copy = options.copy ?? false
+  const direction = options.direction ?? "below"
   const nodeToInsert = options.nodeToInsert
+  const testFn = options.testFn ?? (() => true)
 
   // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
-    testFn,
     direction,
     nodeToInsert,
+    testFn,
   }
 
   // Initial call to the recursive helper. TInputNode is the type of the root.
@@ -116,6 +115,8 @@ export function insert<
   )
 }
 
+// --- insertHelper (Recursive Part) ---
+// TCurrentNode is the type of the node being processed in *this specific recursive step*.
 function insertHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>

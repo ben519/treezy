@@ -117,7 +117,7 @@ describe("getValues function", () => {
   })
 
   test("handles empty tree", () => {
-    const result = getValues(emptyTree)
+    const result = getValues(emptyTree, { childrenKey: "children" })
     expect(result).toHaveLength(1)
     expect(result[0]).toEqual(emptyTree)
   })
@@ -193,7 +193,8 @@ describe("getValues function", () => {
   // Type-specific tests
   test("works with TypeScript UniformNode type", () => {
     const result = getValues<"children", { id: number; name: string }>(
-      typedTree
+      typedTree,
+      { childrenKey: "children" }
     )
     expect(result).toHaveLength(2)
     expect(result[0].id).toBe(1)

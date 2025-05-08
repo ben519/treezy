@@ -5,14 +5,14 @@ interface GenericNodeOptions<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  childrenKey: TChildrenKey
+  initialVal: any
   reduceFn: (
     node: TInputNode,
     initialVal: any,
     parent: TInputNode | null,
     depth: number
   ) => any
-  initialVal: any
-  childrenKey: TChildrenKey
 }
 
 // Options specifically for when the input tree is a UniformNode
@@ -24,14 +24,14 @@ interface UniformNodeOptions<
     TExtraProps
   >
 > {
+  childrenKey: TChildrenKey
+  initialVal: any
   reduceFn: (
     node: TInputNode,
     initialVal: any,
     parent: TInputNode | null,
     depth: number
   ) => any
-  initialVal: any
-  childrenKey: TChildrenKey
 }
 
 // --- Helper Options ---
@@ -42,13 +42,13 @@ interface HelperOptions<
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
   childrenKey: TChildrenKey
+  initialVal: any
   reduceFn: (
     node: TCurrentNode,
     initialVal: any,
     parent: TCurrentNode | null,
     depth: number
   ) => any
-  initialVal: any
 }
 
 // --- reduce Function Overloads ---
@@ -86,16 +86,15 @@ export function reduce<
     | UniformNodeOptions<TChildrenKey, any, TInputNode>
 ): any {
   // Resolve defaults
-  const childrenKey: TChildrenKey =
-    options.childrenKey ?? ("children" as TChildrenKey)
-  const reduceFn = options.reduceFn
+  const childrenKey = options.childrenKey
   const initialVal = options.initialVal
+  const reduceFn = options.reduceFn
 
   // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
-    reduceFn,
     initialVal,
+    reduceFn,
   }
 
   // Initial call to the recursive helper. TInputNode is the type of the root.

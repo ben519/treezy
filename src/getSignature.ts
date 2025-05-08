@@ -44,13 +44,12 @@ export function getSignature<
     TIdKey,
     TId
   >
->(tree: TInputNode, options?: Options<TChildrenKey, TIdKey>): string {
+>(tree: TInputNode, options: Options<TChildrenKey, TIdKey>): string {
   // Resolve defaults
-  const childrenKey: TChildrenKey =
-    options?.childrenKey ?? ("children" as TChildrenKey)
+  const childrenKey = options.childrenKey
+  const closeChar = options?.closeChar ?? "]"
   const idKey = options?.idKey ?? ("id" as TIdKey)
   const openChar = options?.openChar ?? "["
-  const closeChar = options?.closeChar ?? "]"
   const separatorChar = options?.separatorChar ?? ","
 
   // Get the id of this node
@@ -64,14 +63,12 @@ export function getSignature<
     return signature
   }
 
-  // This node has children..
-
   // Prepare options for the internal recursive helper.
   const helperOptions: Options<TChildrenKey, TIdKey> = {
     childrenKey,
+    closeChar,
     idKey,
     openChar,
-    closeChar,
     separatorChar,
   }
 

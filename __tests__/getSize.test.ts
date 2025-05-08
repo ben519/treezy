@@ -169,7 +169,7 @@ describe("getSize function", () => {
         id: 1,
         children: null,
       }
-      expect(getSize(treeWithNull)).toBe(1)
+      expect(getSize(treeWithNull, { childrenKey: "children" })).toBe(1)
     })
   })
 

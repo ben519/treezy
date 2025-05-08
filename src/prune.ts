@@ -5,13 +5,13 @@ interface GenericNodeOptions<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  childrenKey: TChildrenKey
+  copy?: boolean
   testFn: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  copy?: boolean
-  childrenKey: TChildrenKey
 }
 
 // Options specifically for when the input tree is a UniformNode
@@ -23,13 +23,13 @@ interface UniformNodeOptions<
     TExtraProps
   >
 > {
+  childrenKey: TChildrenKey
+  copy?: boolean
   testFn: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  copy?: boolean
-  childrenKey: TChildrenKey
 }
 
 // --- Helper Options ---
@@ -86,15 +86,11 @@ export function prune<
     | UniformNodeOptions<TChildrenKey, any, TInputNode>
 ): TInputNode | null {
   // Resolve defaults
-  const childrenKey: TChildrenKey =
-    options.childrenKey ?? ("children" as TChildrenKey)
-  const testFn = options.testFn
+  const childrenKey = options.childrenKey
   const copy = options.copy ?? false
+  const testFn = options.testFn
 
   // Prepare options for the internal recursive helper.
-  // The 'testFn' passed to the helper is the one provided by the user (or the default),
-  // which has been correctly typed by the overload resolution based on 'tree'.
-  // We assert its type to match what `pruneHelper` expects for its `TCurrentNode`.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
     testFn,
@@ -111,7 +107,6 @@ export function prune<
 
 // --- pruneHelper (Recursive Part) ---
 // TCurrentNode is the type of the node being processed in *this specific recursive step*.
-
 function pruneHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>

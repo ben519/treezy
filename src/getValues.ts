@@ -5,14 +5,14 @@ interface GenericNodeOptions<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  childrenKey: TChildrenKey
+  copy?: boolean
+  getFn?: (node: TInputNode, parent: TInputNode | null, depth: number) => any
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  getFn?: (node: TInputNode, parent: TInputNode | null, depth: number) => any
-  copy?: boolean
-  childrenKey: TChildrenKey
 }
 
 // Options specifically for when the input tree is a UniformNode
@@ -24,14 +24,14 @@ interface UniformNodeOptions<
     TExtraProps
   >
 > {
+  childrenKey: TChildrenKey
+  copy?: boolean
+  getFn?: (node: TInputNode, parent: TInputNode | null, depth: number) => any
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  getFn?: (node: TInputNode, parent: TInputNode | null, depth: number) => any
-  copy?: boolean
-  childrenKey: TChildrenKey
 }
 
 // --- Helper Options ---
@@ -41,13 +41,13 @@ interface HelperOptions<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  childrenKey: TChildrenKey
+  getFn: (node: TCurrentNode, parent: TCurrentNode | null, depth: number) => any
   testFn: (
     node: TCurrentNode,
     parent: TCurrentNode | null,
     depth: number
   ) => boolean
-  getFn: (node: TCurrentNode, parent: TCurrentNode | null, depth: number) => any
-  childrenKey: TChildrenKey
 }
 
 // --- getValues Function Overloads ---
@@ -63,7 +63,7 @@ export function getValues<
   >
 >(
   tree: TInputNode,
-  options?: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
+  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
 ): any[]
 
 // Overload 2: For generic Node (this comes after more specific overloads)
@@ -71,7 +71,7 @@ export function getValues<
 export function getValues<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
->(tree: TInputNode, options?: GenericNodeOptions<TChildrenKey>): any[]
+>(tree: TInputNode, options: GenericNodeOptions<TChildrenKey>): any[]
 
 // --- getValues Implementation ---
 // This single implementation handles both overload cases.
@@ -81,21 +81,17 @@ export function getValues<
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
   tree: TInputNode,
-  options?:
+  options:
     | GenericNodeOptions<TChildrenKey, TInputNode>
     | UniformNodeOptions<TChildrenKey, any, TInputNode>
 ): any[] {
   // Resolve defaults
-  const childrenKey: TChildrenKey =
-    options?.childrenKey ?? ("children" as TChildrenKey)
-  const testFn = options?.testFn ?? (() => true)
-  const getFn = options?.getFn ?? ((node) => node)
+  const childrenKey = options.childrenKey
   const copy = options?.copy ?? false
+  const getFn = options?.getFn ?? ((node) => node)
+  const testFn = options?.testFn ?? (() => true)
 
   // Prepare options for the internal recursive helper.
-  // The 'testFn' passed to the helper is the one provided by the user (or the default),
-  // which has been correctly typed by the overload resolution based on 'tree'.
-  // We assert its type to match what `getValuesHelper` expects for its `TCurrentNode`.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
     testFn,

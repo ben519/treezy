@@ -86,10 +86,9 @@ export function getParent<
     | UniformNodeOptions<TChildrenKey, any, TInputNode>
 ): TInputNode | null | undefined {
   // Resolve defaults
-  const childrenKey: TChildrenKey =
-    options.childrenKey ?? ("children" as TChildrenKey)
-  const testFn = options.testFn
+  const childrenKey = options.childrenKey
   const copy = options.copy ?? false
+  const testFn = options.testFn
 
   // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
@@ -106,6 +105,8 @@ export function getParent<
   )
 }
 
+// --- getParentHelper (Recursive Part) ---
+// TCurrentNode is the type of the node being processed in *this specific recursive step*.
 function getParentHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
