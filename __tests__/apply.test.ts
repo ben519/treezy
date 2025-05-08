@@ -11,6 +11,7 @@ describe("apply function", () => {
 
     const multiplier = 2
     const result = apply(tree, {
+      childrenKey: "children",
       applyFn: (node) => {
         if (typeof node.value === "number") {
           node.value = node.value * multiplier
@@ -65,6 +66,7 @@ describe("apply function", () => {
     }
 
     const result = apply(tree, {
+      childrenKey: "children",
       applyFn: (node) => {
         if (typeof node.value === "number") {
           node.value = node.value * 2
@@ -93,6 +95,7 @@ describe("apply function", () => {
     }
 
     const result = apply(tree, {
+      childrenKey: "children",
       applyFn: (node, _, depth = 0) => {
         node.level = depth
       },
@@ -120,6 +123,7 @@ describe("apply function", () => {
     }
 
     const result = apply(tree, {
+      childrenKey: "children",
       applyFn: (node, parent) => {
         node.parentId = parent ? parent.id : null
       },
@@ -141,6 +145,7 @@ describe("apply function", () => {
     const originalTree = structuredClone(tree)
 
     const result = apply(tree, {
+      childrenKey: "children",
       applyFn: (node) => {
         if (typeof node.value === "number") {
           node.value = node.value * 2
@@ -193,6 +198,7 @@ describe("apply function", () => {
     }
 
     const result = apply(tree, {
+      childrenKey: "children",
       applyFn: (node) => {
         node.processed = true
       },
@@ -210,6 +216,7 @@ describe("apply function", () => {
     }
 
     const result = apply(tree, {
+      childrenKey: "children",
       applyFn: (node) => {
         node.processed = true
       },
@@ -245,6 +252,7 @@ describe("apply function", () => {
     let nodeCount = 0
 
     apply(tree, {
+      childrenKey: "children",
       applyFn: () => {
         nodeCount++
       },

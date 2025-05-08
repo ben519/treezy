@@ -35,7 +35,7 @@ interface Options<
    * Name of the array property in tree that stores the child nodes
    * @default "children"
    */
-  childrenKey?: TChildrenKey
+  childrenKey: TChildrenKey
 }
 
 export function getSignature<

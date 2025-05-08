@@ -13,7 +13,7 @@ interface GenericNodeOptions<
   ) => boolean
   direction?: "after" | "before" | "below"
   copy?: boolean
-  childrenKey?: TChildrenKey
+  childrenKey: TChildrenKey
 }
 
 // Options specifically for when the input tree is a UniformNode
@@ -33,7 +33,7 @@ interface UniformNodeOptions<
   ) => boolean
   direction?: "after" | "before" | "below"
   copy?: boolean
-  childrenKey?: TChildrenKey
+  childrenKey: TChildrenKey
 }
 
 // --- Helper Options ---

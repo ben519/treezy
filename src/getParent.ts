@@ -11,7 +11,7 @@ interface GenericNodeOptions<
     depth: number
   ) => boolean
   copy?: boolean
-  childrenKey?: TChildrenKey
+  childrenKey: TChildrenKey
 }
 
 // Options specifically for when the input tree is a UniformNode
@@ -29,7 +29,7 @@ interface UniformNodeOptions<
     depth: number
   ) => boolean
   copy?: boolean
-  childrenKey?: TChildrenKey
+  childrenKey: TChildrenKey
 }
 
 // --- Helper Options ---

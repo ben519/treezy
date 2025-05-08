@@ -11,6 +11,7 @@ describe("prune function", () => {
       }
 
       const result = prune(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "root",
       })
 
@@ -24,6 +25,7 @@ describe("prune function", () => {
       }
 
       const result = prune(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "removeMe",
       })
 
@@ -51,6 +53,7 @@ describe("prune function", () => {
       }
 
       const result = prune(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "removeMe",
       })
 
@@ -91,6 +94,7 @@ describe("prune function", () => {
       }
 
       const result = prune(tree, {
+        childrenKey: "children",
         testFn: () => false,
       })
 
@@ -104,6 +108,7 @@ describe("prune function", () => {
       }
 
       const result = prune(tree, {
+        childrenKey: "children",
         testFn: () => false,
       })
 
@@ -135,6 +140,7 @@ describe("prune function", () => {
       }
 
       const result = prune(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "removeMe",
       })
 
@@ -185,6 +191,7 @@ describe("prune function", () => {
       }
 
       const result = prune(tree, {
+        childrenKey: "children",
         testFn: (node, parent) =>
           parent !== null && parent.id === "branch1" && node.id === "leaf2",
       })
@@ -210,6 +217,7 @@ describe("prune function", () => {
       }
 
       const result = prune(tree, {
+        childrenKey: "children",
         testFn: (node, _parent, depth) => depth === 2,
       })
 
@@ -227,6 +235,7 @@ describe("prune function", () => {
       const originalChildrenCount = tree.children?.length
 
       const result = prune(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "removeMe",
         copy: true, // This option should create a copy instead of modifying original
       })
@@ -277,7 +286,9 @@ describe("prune function", () => {
       }
 
       // This should handle the deep tree without stack overflow
-      expect(() => prune(deepTree, { testFn: () => false })).not.toThrow()
+      expect(() =>
+        prune(deepTree, { childrenKey: "children", testFn: () => false })
+      ).not.toThrow()
     })
   })
 })

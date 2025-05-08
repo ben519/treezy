@@ -73,6 +73,7 @@ describe("getSize function", () => {
 
       // Only count incomplete tasks
       const result = getSize(todoTree, {
+        childrenKey: "children",
         testFn: (node) => !node.completed,
       })
 
@@ -121,6 +122,7 @@ describe("getSize function", () => {
 
       // Only count nodes at depth 0 and 2
       const result = getSize(tree, {
+        childrenKey: "children",
         testFn: (node, parent, depth) => depth === 0 || depth === 2,
       })
 
@@ -144,6 +146,7 @@ describe("getSize function", () => {
 
       // Only count nodes whose parent has ID 2
       const result = getSize(tree, {
+        childrenKey: "children",
         testFn: (node, parent) => parent?.id === 2,
       })
 

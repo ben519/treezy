@@ -15,6 +15,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "child1",
         direction: "below",
@@ -36,6 +37,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "child1",
         direction: "after",
@@ -61,6 +63,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "child2",
         direction: "before",
@@ -86,6 +89,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "child1",
         direction: "below",
@@ -144,6 +148,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "great-grandchild1",
         direction: "below",
@@ -166,6 +171,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "non-existent",
         direction: "below",
@@ -186,6 +192,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "child1",
         direction: "below",
@@ -211,6 +218,7 @@ describe("insert function", () => {
       // Execute & Assert
       expect(() => {
         insert(tree, {
+          childrenKey: "children",
           nodeToInsert,
           testFn: (node) => node.id === "root",
           direction: "after",
@@ -243,6 +251,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "child1",
         direction: "below",
@@ -274,6 +283,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node, parent, depth) => {
           return parent?.id === "child1" && depth === 2
@@ -303,6 +313,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "child1",
         // direction is omitted
@@ -324,6 +335,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         // testFn is omitted - should match root by default
       })
@@ -344,6 +356,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "child1",
         // childrenKey is omitted
@@ -368,6 +381,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "root",
         direction: "below",
@@ -389,6 +403,7 @@ describe("insert function", () => {
 
       // Execute
       const result = insert(tree, {
+        childrenKey: "children",
         nodeToInsert,
         testFn: (node) => node.id === "root",
         direction: "below",

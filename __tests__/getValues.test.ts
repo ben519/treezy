@@ -78,6 +78,7 @@ describe("getValues function", () => {
 
   test("applies testFn to filter nodes", () => {
     const result = getValues(basicTree, {
+      childrenKey: "children",
       testFn: (x: Node & { id: number }) => x.id % 2 === 1,
     })
     expect(result).toHaveLength(3)
@@ -86,6 +87,7 @@ describe("getValues function", () => {
 
   test("applies getFn to transform nodes", () => {
     const result = getValues(basicTree, {
+      childrenKey: "children",
       getFn: (node) => node.name,
     })
     expect(result).toEqual([
@@ -99,6 +101,7 @@ describe("getValues function", () => {
 
   test("combines testFn and getFn", () => {
     const result = getValues(basicTree, {
+      childrenKey: "children",
       testFn: (x: Node & { id: number }) => x.id % 2 === 0, // Only even IDs
       getFn: (node) => node.name,
     })
@@ -128,6 +131,7 @@ describe("getValues function", () => {
   test("provides parent in testFn and getFn", () => {
     const parents: any[] = []
     getValues(basicTree, {
+      childrenKey: "children",
       testFn: (node, parent) => {
         if (parent) parents.push({ child: node.id, parent: parent.id })
         return false
@@ -143,6 +147,7 @@ describe("getValues function", () => {
   test("provides depth in testFn and getFn", () => {
     const depths: any[] = []
     getValues(basicTree, {
+      childrenKey: "children",
       testFn: (node, parent, depth) => {
         depths.push({ id: node.id, depth })
         return false
@@ -159,7 +164,7 @@ describe("getValues function", () => {
 
   test("creates deep copy when copy option is true", () => {
     const original = { ...basicTree }
-    const result = getValues(basicTree, { copy: true })
+    const result = getValues(basicTree, { childrenKey: "children", copy: true })
 
     // Modify the first result
     if (result[0].children && result[0].children.length > 0) {

@@ -16,6 +16,7 @@ describe("reduce function", () => {
     }
 
     const result = reduce(simpleTree, {
+      childrenKey: "children",
       reduceFn: (node, acc) => acc + (node.value as number),
       initialVal: 0,
     })
@@ -61,6 +62,7 @@ describe("reduce function", () => {
     const paths: string[] = []
 
     reduce(tree, {
+      childrenKey: "children",
       reduceFn: (node, acc, parent) => {
         const currentId = node.id as string
         const parentId = parent ? (parent.id as string) : "null"
@@ -94,6 +96,7 @@ describe("reduce function", () => {
     const depthMap: Record<string, number> = {}
 
     reduce(tree, {
+      childrenKey: "children",
       reduceFn: (node, acc, _parent, depth = 0) => {
         depthMap[node.level as string] = depth
         return acc
@@ -136,6 +139,7 @@ describe("reduce function", () => {
     }
 
     const totalSize = reduce(fileSystem, {
+      childrenKey: "children",
       reduceFn: (node, acc) => {
         if (node.type === "file") {
           return acc + (node.size as number)
@@ -172,6 +176,7 @@ describe("reduce function", () => {
     }
 
     const fileCount = reduce(fileSystem, {
+      childrenKey: "children",
       reduceFn: (node, acc) => {
         if (node.type === "file") {
           return acc + 1
@@ -189,6 +194,7 @@ describe("reduce function", () => {
     const emptyTree: Node = { value: 5 } // No children
 
     const result = reduce(emptyTree, {
+      childrenKey: "children",
       reduceFn: (node, acc) => acc + (node.value as number),
       initialVal: 0,
     })
@@ -215,6 +221,7 @@ describe("reduce function", () => {
     }
 
     const namesByGeneration = reduce(familyTree, {
+      childrenKey: "children",
       reduceFn: (node, acc) => {
         const generation = node.generation as number
         const name = node.name as string

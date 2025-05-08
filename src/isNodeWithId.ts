@@ -1,34 +1,30 @@
 import { NodeWithId } from "./types.js"
 
-interface Options<
-  TChildrenKey extends string = "children",
-  TIdKey extends string = "id"
-> {
+interface Options<TChildrenKey extends string, TIdKey extends string> {
   childrenKey: TChildrenKey
   idKey: TIdKey
 }
 
 export function isNodeWithId<
-  TChildrenKey extends string = "children",
-  TIdKey extends string = "id",
+  TChildrenKey extends string,
+  TIdKey extends string,
   TId = string | number | symbol
 >(
   value: unknown,
-  options?: Options<TChildrenKey, TIdKey>
+  options: Options<TChildrenKey, TIdKey>
 ): value is NodeWithId<TChildrenKey, TIdKey, TId> {
   // Check if value is a non-null object
   if (typeof value !== "object" || value === null) return false
 
   const obj = value as Record<string, unknown>
 
+  // Destructure options
+  const { childrenKey, idKey } = options
+
   // Check if idKey exists in this node
-  const idKey: TIdKey = options?.idKey ?? ("id" as TIdKey)
   if (!(idKey in obj)) return false
 
   // Get the children of this node
-  const childrenKey: TChildrenKey =
-    options?.childrenKey ?? ("children" as TChildrenKey)
-
   const maybeChildren = obj[childrenKey]
 
   // If the children property doesn't exist, it's still a valid node (a leaf)

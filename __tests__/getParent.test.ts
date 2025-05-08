@@ -11,6 +11,7 @@ describe("getParent function", () => {
       }
 
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "root",
       })
 
@@ -24,6 +25,7 @@ describe("getParent function", () => {
       }
 
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "child1",
       })
 
@@ -43,6 +45,7 @@ describe("getParent function", () => {
       }
 
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "grandchild1",
       })
 
@@ -56,6 +59,7 @@ describe("getParent function", () => {
       }
 
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "nonexistent",
       })
 
@@ -83,6 +87,7 @@ describe("getParent function", () => {
       }
 
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "nonexistent",
       })
 
@@ -96,6 +101,7 @@ describe("getParent function", () => {
       }
 
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "nonexistent",
       })
 
@@ -114,6 +120,7 @@ describe("getParent function", () => {
       }
 
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node, parent, depth) => depth === 2,
       })
 
@@ -136,6 +143,7 @@ describe("getParent function", () => {
       }
 
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node, parent) => parent?.id === "child2",
       })
 
@@ -275,6 +283,7 @@ describe("getParent function", () => {
 
       // Should find the first occurrence's parent
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "target",
       })
 
@@ -296,6 +305,7 @@ describe("getParent function", () => {
 
       // Find the parent of the deepest node
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "level10",
       })
 
@@ -327,6 +337,7 @@ describe("getParent function", () => {
       // This is a tricky case - which parent should be returned depends on traversal order
       // In depth-first traversal (which the implementation uses), it should find the first path
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "common",
       })
 
@@ -347,6 +358,7 @@ describe("getParent function", () => {
       // We expect this to find the parent based on the first occurrence in traversal
       // before hitting the circular reference
       const result = getParent(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "child",
       })
 

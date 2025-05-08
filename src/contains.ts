@@ -10,7 +10,7 @@ interface GenericNodeOptions<
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  childrenKey?: TChildrenKey
+  childrenKey: TChildrenKey
 }
 
 // Options specifically for when the input tree is a UniformNode
@@ -27,7 +27,7 @@ interface UniformNodeOptions<
     parent: TInputNode | null,
     depth: number
   ) => boolean
-  childrenKey?: TChildrenKey
+  childrenKey: TChildrenKey
 }
 
 // --- Helper Options for contains ---

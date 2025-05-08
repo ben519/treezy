@@ -6,7 +6,7 @@ import { Node } from "./types.js"
  */
 interface GenericNodeOptions<TChildrenKey extends string = "children"> {
   /** The property name used to access child nodes in the tree. */
-  childrenKey?: TChildrenKey
+  childrenKey: TChildrenKey
 }
 
 /**

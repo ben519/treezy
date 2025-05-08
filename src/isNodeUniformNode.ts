@@ -1,18 +1,18 @@
 import { Node, UniformNode } from "./types.js"
 
-interface Options<TChildrenKey extends string = "children"> {
+interface Options<TChildrenKey extends string> {
   childrenKey: TChildrenKey
 }
 
 export function isNodeUniformNode<
-  TChildrenKey extends string = "children",
+  TChildrenKey extends string,
   TExtraProps extends object = {}
 >(
   node: Node<TChildrenKey>,
-  options?: Options<TChildrenKey>
+  options: Options<TChildrenKey>
 ): node is UniformNode<TChildrenKey, TExtraProps> {
-  const childrenKey: TChildrenKey =
-    options?.childrenKey ?? ("children" as TChildrenKey)
+  // Destructure options
+  const { childrenKey } = options
 
   // Get the expected keys from the first node (using Object.keys)
   const nodeKeys = Object.keys(node).filter((key) => key !== childrenKey)
@@ -21,7 +21,7 @@ export function isNodeUniformNode<
   const nodeKeysSet = new Set(nodeKeys)
 
   // If there are no children, we can't validate further, so assume this node is uniform
-  const children = node[childrenKey] as Node<TChildrenKey>[] | undefined
+  const children = node[childrenKey]
   if (!children || children.length === 0) {
     return true
   }

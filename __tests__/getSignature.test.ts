@@ -38,6 +38,7 @@ describe("getSignature", () => {
     }
 
     const result = getSignature(tree, {
+      childrenKey: "children",
       openChar: "{",
       closeChar: "}",
       separatorChar: "|",
@@ -74,7 +75,10 @@ describe("getSignature", () => {
       children: [{ nodeId: "child1" }, { nodeId: "child2" }],
     }
 
-    const result = getSignature(tree, { idKey: "nodeId" })
+    const result = getSignature(tree, {
+      childrenKey: "children",
+      idKey: "nodeId",
+    })
     expect(result).toBe("root[child1,child2]")
   })
 

@@ -14,6 +14,7 @@ describe("bifurcate function", () => {
       }
 
       const result = bifurcate(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "root",
       })
 
@@ -31,6 +32,7 @@ describe("bifurcate function", () => {
       }
 
       const result = bifurcate(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "child2",
       })
 
@@ -54,6 +56,7 @@ describe("bifurcate function", () => {
       }
 
       const result = bifurcate(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "grandchild1",
       })
 
@@ -74,6 +77,7 @@ describe("bifurcate function", () => {
       }
 
       const result = bifurcate(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "nonexistent",
       })
 
@@ -88,6 +92,7 @@ describe("bifurcate function", () => {
       }
 
       const result = bifurcate(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "child1",
       })
 
@@ -101,6 +106,7 @@ describe("bifurcate function", () => {
       }
 
       const result = bifurcate(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "child1",
       })
 
@@ -146,6 +152,7 @@ describe("bifurcate function", () => {
       const originalTree = JSON.parse(JSON.stringify(tree))
 
       const result = bifurcate(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "child2",
         copy: true,
       })
@@ -180,7 +187,7 @@ describe("bifurcate function", () => {
         return false
       })
 
-      const result = bifurcate(tree, { testFn })
+      const result = bifurcate(tree, { childrenKey: "children", testFn })
 
       // Check that testFn was called with correct arguments
       expect(testFn).toHaveBeenCalledWith(
@@ -213,6 +220,7 @@ describe("bifurcate function", () => {
       }
 
       const result = bifurcate(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "child2",
       })
 
@@ -289,6 +297,7 @@ describe("bifurcate function", () => {
       }
 
       const result = bifurcate(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "target",
       })
 
@@ -324,6 +333,7 @@ describe("bifurcate function", () => {
       }
 
       const result = bifurcate(tree, {
+        childrenKey: "children",
         testFn: (node) => node.id === "match",
       })
 

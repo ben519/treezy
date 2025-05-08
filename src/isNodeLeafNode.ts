@@ -1,13 +1,24 @@
 import { LeafNode, Node } from "./types.js"
 
-interface Options<TChildrenKey extends string = "children"> {
+interface Options<TChildrenKey extends string> {
   childrenKey: TChildrenKey
 }
 
-export function isNodeLeafNode<TChildrenKey extends string = "children">(
-  node: Node<TChildrenKey>,
-  options?: Options<TChildrenKey>
-): node is LeafNode<TChildrenKey> {
-  const children = node[options?.childrenKey ?? ("children" as TChildrenKey)]
-  return !Array.isArray(children) || children.length === 0
+export function isNodeLeafNode<
+  TChildrenKey extends string,
+  TNode extends Node<TChildrenKey> = Node<TChildrenKey>
+>(
+  node: TNode,
+  options: Options<TChildrenKey>
+): node is LeafNode<TChildrenKey, TNode> {
+  // Destructure options
+  const { childrenKey } = options
+
+  // Get the children
+  const children = node[childrenKey]
+
+  // Confirm children is undefined or an empty array
+  return (
+    children === undefined || (Array.isArray(children) && children.length === 0)
+  )
 }
