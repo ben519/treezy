@@ -14,9 +14,7 @@ export function isLeafNode<
   options: Options<TChildrenKey>
 ): value is LeafNode<TChildrenKey, TExtraProps> {
   return (
-    isNode<TChildrenKey, TExtraProps>(value, {
-      ...options,
-      checkForCircularReference: false,
-    }) && isNodeLeafNode<TChildrenKey, TExtraProps>(value, options)
+    isNode<TChildrenKey, TExtraProps>(value, options) &&
+    isNodeLeafNode<TChildrenKey, TExtraProps>(value, options)
   )
 }

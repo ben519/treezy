@@ -9,13 +9,6 @@ describe("isNodeWithId", () => {
   const optionsWithCircularCheck = {
     childrenKey: "children",
     idKey: "id",
-    checkForCircularReference: true,
-  }
-
-  const optionsWithoutCircularCheck = {
-    childrenKey: "children",
-    idKey: "id",
-    checkForCircularReference: false,
   }
 
   test("returns false for non-object values", () => {
@@ -202,12 +195,4 @@ describe("isNodeWithId", () => {
       "Circular reference detected in tree."
     )
   })
-
-  // test("does not throw for circular references with checkForCircularReference = false", () => {
-  //   const a: any = { id: "a" }
-  //   const b: any = { id: "b", children: [a] }
-  //   a.children = [b] // Circular reference
-
-  //   expect(isNodeWithId(a, optionsWithoutCircularCheck)).toBe(true)
-  // })
 })
