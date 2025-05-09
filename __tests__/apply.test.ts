@@ -277,4 +277,87 @@ describe("apply function", () => {
 
     expect(nodeCount).toBe(8) // Total number of nodes in the tree
   })
+
+  // Test with direct circular reference (parent to child and back)
+  test("throws error with direct circular reference", () => {
+    const parent: Node<"children"> = {
+      value: "parent",
+      children: [],
+    }
+
+    const child: Node<"children"> = {
+      value: "child",
+      children: [],
+    }
+
+    // Create circular reference
+    parent.children = [child]
+    child.children = [parent] // This creates a circle
+
+    expect(() => {
+      apply(parent, {
+        childrenKey: "children",
+        applyFn: (node) => {
+          node.processed = true
+          return node
+        },
+      })
+    }).toThrow("Circular reference detected")
+  })
+
+  // Test with indirect circular reference (longer cycle)
+  test("throws error with indirect circular reference", () => {
+    const node1: Node<"children"> = {
+      value: "node1",
+      children: [],
+    }
+
+    const node2: Node<"children"> = {
+      value: "node2",
+      children: [],
+    }
+
+    const node3: Node<"children"> = {
+      value: "node3",
+      children: [],
+    }
+
+    // Create a longer cycle: node1 -> node2 -> node3 -> node1
+    node1.children = [node2]
+    node2.children = [node3]
+    node3.children = [node1] // This completes the circle
+
+    expect(() => {
+      apply(node1, {
+        childrenKey: "children",
+        applyFn: (node) => {
+          node.processed = true
+          return node
+        },
+      })
+    }).toThrow("Circular reference detected")
+  })
+
+  // Test that copy option doesn't help with circular references
+  test("throws error with circular reference even with copy option", () => {
+    const parent: Node<"children"> = {
+      value: "parent",
+      children: [],
+    }
+
+    const child: Node<"children"> = {
+      value: "child",
+      children: [parent], // Circular reference
+    }
+
+    parent.children = [child]
+
+    expect(() => {
+      apply(parent, {
+        childrenKey: "children",
+        applyFn: (node) => node,
+        copy: true, // Even with copy option
+      })
+    }).toThrow("Circular reference detected")
+  })
 })

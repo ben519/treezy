@@ -256,23 +256,6 @@ describe("prune function", () => {
       expect(() => prune(undefined, { testFn: () => false })).toThrow()
     })
 
-    // test("should handle circular references gracefully", () => {
-    //   const tree: Node<"children"> = {
-    //     id: "root",
-    //     children: [],
-    //   }
-
-    //   // Create a circular reference
-    //   const child: Node<"children"> = { id: "child", children: [] }
-    //   tree.children?.push(child)
-    //   child.children?.push(tree as Node)
-
-    //   // This should either handle it gracefully or throw a controlled error
-    //   expect(() =>
-    //     prune(tree, { testFn: (node) => node.id === "nonexistent" })
-    //   ).not.toThrow()
-    // })
-
     test("should handle very deep trees without stack overflow", () => {
       // Create a very deep tree
       let deepTree: Node<"children"> = { id: "root" }

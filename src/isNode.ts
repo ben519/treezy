@@ -21,9 +21,7 @@ export function isNode<
     if (typeof val !== "object" || val === null) return false
 
     // Check if this node has already been visited
-    if (visited.has(val)) {
-      throw new Error("Circular reference detected in tree.")
-    }
+    if (visited.has(val)) throw new Error("Circular reference detected")
     visited.add(val)
 
     // Make sure children is undefined or an array

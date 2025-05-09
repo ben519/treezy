@@ -25,7 +25,7 @@ export function isNodeWithId<
 
     // Check if this node has already been visited
     if (visited.has(val)) {
-      throw new Error("Circular reference detected in tree.")
+      throw new Error("Circular reference detected")
     }
     visited.add(val)
 

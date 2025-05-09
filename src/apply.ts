@@ -184,6 +184,9 @@ export function apply<
   const copy = options.copy ?? false
   const testFn = options.testFn ?? (() => true)
 
+  // Make a Weak Set to keep track of nodes for circular reference
+  const visitedNodesSet = new WeakSet()
+
   // Prepare options for the internal recursive helper.
   // The 'testFn' passed to the helper is the one provided by the user (or the default),
   // which has been correctly typed by the overload resolution based on 'tree'.
@@ -199,6 +202,7 @@ export function apply<
     copy ? structuredClone(tree) : tree,
     null,
     0,
+    visitedNodesSet,
     helperOptions
   )
 }
@@ -214,6 +218,7 @@ export function applyHelper<
   node: TCurrentNode,
   parent: TCurrentNode | null,
   depth: number,
+  visited: WeakSet<object>,
   options: Omit<
     HelperOptions<TChildrenKey, TCurrentNode, TResult>,
     "testFn"
@@ -235,6 +240,7 @@ export function applyHelper<
   node: TCurrentNode,
   parent: TCurrentNode | null,
   depth: number,
+  visited: WeakSet<object>,
   options: Omit<
     HelperOptions<TChildrenKey, TCurrentNode, TResult>,
     "testFn"
@@ -256,6 +262,7 @@ export function applyHelper<
   node: TCurrentNode,
   parent: TCurrentNode | null,
   depth: number,
+  visited: WeakSet<object>,
   options: HelperOptions<TChildrenKey, TCurrentNode, TResult>
 ): TResult | TCurrentNode
 
@@ -268,9 +275,14 @@ export function applyHelper<
   node: TCurrentNode,
   parent: TCurrentNode | null,
   depth: number,
+  visited: WeakSet<object>,
   options: HelperOptions<TChildrenKey, TCurrentNode, TResult>
 ): any {
   const { applyFn, testFn, childrenKey } = options
+
+  // Check if this node has already been visited
+  if (visited.has(node)) throw new Error("Circular reference detected")
+  visited.add(node)
 
   if (testFn(node, parent, depth)) {
     applyFn(node, parent, depth)
@@ -282,7 +294,7 @@ export function applyHelper<
   }
 
   for (const child of childrenArray) {
-    applyHelper(child, node, depth + 1, options)
+    applyHelper(child, node, depth + 1, visited, options)
   }
 
   return node

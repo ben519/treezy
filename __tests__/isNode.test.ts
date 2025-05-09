@@ -91,14 +91,12 @@ describe("isNode", () => {
     expect(isNode(node, baseOptions)).toBe(false)
   })
 
-  it("detects circular reference and throws by default (checkForCircularReference = true)", () => {
+  it("detects circular reference and throws by default", () => {
     const a: any = { name: "A" }
     const b: any = { name: "B", children: [a] }
     a.children = [b] // Circular reference
 
-    expect(() => isNode(a, baseOptions)).toThrow(
-      "Circular reference detected in tree."
-    )
+    expect(() => isNode(a, baseOptions)).toThrow("Circular reference detected")
   })
 
   it("returns false for non-object input", () => {

@@ -242,35 +242,6 @@ describe("contains function", () => {
 
   // Edge cases
   describe("edge cases", () => {
-    // test("should handle circular references", () => {
-    //   // Create nodes that we can mutate to create a circular reference
-    //   const root: Node<"children"> = { id: 1, name: "root", children: [] }
-    //   const child: Node<"children"> = { id: 2, name: "child", children: [] }
-
-    //   // Create a circular reference
-    //   root.children = [child]
-    //   ;(child.children as Node[]) = [root] // This creates a circular reference
-
-    //   // We need to keep track of visited nodes to avoid infinite recursion
-    //   const visitedIds = new Set<number>()
-
-    //   const result = contains(root, {
-    //     childrenKey: "children",
-    //     testFn: (node) => {
-    //       // If we've seen this node before, return false to avoid infinite recursion
-    //       if (visitedIds.has(node.id)) {
-    //         return false
-    //       }
-    //       visitedIds.add(node.id)
-
-    //       return node.id === 3 // Looking for a node that doesn't exist
-    //     },
-    //   })
-
-    //   expect(result).toBe(false)
-    //   expect(visitedIds.size).toBe(2) // Should have visited both nodes
-    // })
-
     test("should handle nodes with null or undefined children", () => {
       const tree: Node<"children"> = {
         id: 1,
