@@ -260,6 +260,13 @@ describe("apply function", () => {
 
     let nodeCount = 0
 
+    // This example annoys me. It should be possible to do
+    // applyFn: () => { nodeCount++ }
+    // In general, when the applyFn returns void, its arguments
+    // should be immutable and the return value of apply() should be
+    // type TInputNode. But getting this to work properly with TS
+    // is hard, particularly because function overload ignores
+    // a parameter function's return type in picking a matching signature
     apply(tree, {
       childrenKey: "children",
       applyFn: (node) => {
