@@ -1,7 +1,7 @@
 {
   "name": "treezy",
   "type": "module",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "repository": {
     "url": "https://github.com/ben519/treezy"
   },
