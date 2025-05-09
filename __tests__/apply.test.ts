@@ -16,6 +16,7 @@ describe("apply function", () => {
         if (typeof node.value === "number") {
           node.value = node.value * multiplier
         }
+        return node
       },
     })
 
@@ -48,6 +49,7 @@ describe("apply function", () => {
     const result = apply(tree, {
       applyFn: (node) => {
         node.count += 10
+        return node
       },
       childrenKey: "items",
     })
@@ -71,6 +73,7 @@ describe("apply function", () => {
         if (typeof node.value === "number") {
           node.value = node.value * 2
         }
+        return node
       },
       testFn: (node) => typeof node.value === "number" && node.value > 2,
     })
@@ -98,6 +101,7 @@ describe("apply function", () => {
       childrenKey: "children",
       applyFn: (node, _, depth = 0) => {
         node.level = depth
+        return node
       },
     })
 
@@ -126,6 +130,7 @@ describe("apply function", () => {
       childrenKey: "children",
       applyFn: (node, parent) => {
         node.parentId = parent ? parent.id : null
+        return node
       },
     })
 
@@ -150,6 +155,7 @@ describe("apply function", () => {
         if (typeof node.value === "number") {
           node.value = node.value * 2
         }
+        return node
       },
       copy: true,
     })
@@ -180,6 +186,7 @@ describe("apply function", () => {
     const result = apply(tree, {
       applyFn: (node) => {
         node.value = `modified-${node.value}`
+        return node
       },
       childrenKey: "items",
     })
@@ -201,6 +208,7 @@ describe("apply function", () => {
       childrenKey: "children",
       applyFn: (node) => {
         node.processed = true
+        return node
       },
     })
 
@@ -219,6 +227,7 @@ describe("apply function", () => {
       childrenKey: "children",
       applyFn: (node) => {
         node.processed = true
+        return node
       },
     })
 
@@ -253,8 +262,9 @@ describe("apply function", () => {
 
     apply(tree, {
       childrenKey: "children",
-      applyFn: () => {
+      applyFn: (node) => {
         nodeCount++
+        return node
       },
     })
 
