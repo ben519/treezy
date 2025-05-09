@@ -13,7 +13,7 @@ In Node.js (version 16+), install with [npm][]:
 npm install treezy
 ```
 
-## What
+## Why?
 
 Here's a tree with three nodes 👇
 
@@ -31,49 +31,9 @@ const myTree = {
 }
 ```
 
-In `treezy`, the terms "node" and "tree" are used interchangeably. A _Node_ (or Tree) follows these rules:
-
-1. A Node is an object
-2. A Node may have an array of children
-3. If a Node has children, they must be an array of Nodes
-4. Every Node in a tree must use the same key name to described its children
-
-These are all valid Nodes in treezy:
-
-```js
-// Using "children" as the key
-const node1 = {
-  id: "root",
-  children: [
-    { id: "left", children: [] },
-    { id: "right", children: [] },
-  ],
-}
-
-// Using "nodes" as the key
-const node2 = {
-  name: "top",
-  nodes: [
-    { name: "mid", nodes: [] },
-    { name: "bottom", nodes: [] },
-  ],
-}
-
-// Using a custom key like "subItems"
-const node3 = {
-  label: "parent",
-  subItems: [
-    { label: "child1", subItems: [] },
-    { label: "child2", subItems: [] },
-  ],
-}
-```
-
-## Why?
-
 `treezy` makes it easy to do things like...
 
-**Count the number of nodes in the tree**
+**Count the number of nodes in a tree**
 
 ```js
 import { getSize } from "treezy"
@@ -100,6 +60,48 @@ getSubtree(myTree, { testFn: (x) => x.id === "B" })
 // Returns: { id: "B", children: [] }
 ```
 
+## You should know..
+
+In `treezy`, the terms "node" and "tree" are used interchangeably. A _Node_ (or Tree) follows these rules:
+
+1. A Node is an object
+2. A Node may have an array of children
+3. If a Node has an array of children, each child must be a Node
+4. All Nodes in a tree must use the same key name for the array that stores their children
+
+These are all valid Nodes in treezy:
+
+```js
+// A simple, balanced tree
+const tree1 = {
+  id: "root",
+  children: [
+    { id: "left", children: [] },
+    { id: "right", children: [] },
+  ],
+}
+
+// A tree that calls its children 'nodes'
+const tree2 = {
+  nodes: [{ nodes: [] }, { nodes: [] }],
+}
+
+// An unbalanced tree whose leaf nodes omit the 'children' property
+const tree3 = {
+  name: "a",
+  children: [{ name: "b", children: [{ name: "c" }] }, { name: "d" }],
+}
+
+// A tree whose nodes have different shapes
+const tree4 = {
+  label: "parent",
+  items: [
+    { name: "child1", color: "red", items: [] },
+    { id: 7, items: [] },
+  ],
+}
+```
+
 ## Notes
 
 - `treezy` functions operate on their input arguments by reference, by default
@@ -113,7 +115,7 @@ getSubtree(myTree, { testFn: (x) => x.id === "B" })
 - **`bifurcate(tree, options)`** - split a tree into two subtrees
 - **`contains(tree, options)`** - check if a tree contains a node that passes some test
 - **`getDepth(tree, options)`** - get the number of nodes in a tree
-- **`getParent(tree, options)`** - get the parent node of some other node
+- **`getParent(tree, options)`** - find a node that passes some test and return its parent
 - **`getSignature(tree, options)`** - combine the node ids and structure into a unique id
 - **`getSize(tree, options)`** - count the number of nodes in a tree
 - **`getSubtree(tree, options)`** - retrieve the subtree of a tree starting at some node
@@ -245,7 +247,7 @@ prune(comment, {
 
 ### Node
 
-Base node type with generic children key and customizable props.
+A `Node` is an object with a generic children key and customizable props.
 
 ```ts
 const genericNode: Node<"children", { name: string }> = {
@@ -256,7 +258,7 @@ const genericNode: Node<"children", { name: string }> = {
 
 ### LeafNode
 
-A leaf node explicitly has an empty array (or undefined) for its children key.
+A `LeafNode` explicitly has an empty array (or undefined) for its children key.
 
 ```ts
 const leaf: LeafNode<"items", { label: string }> = {
@@ -267,7 +269,7 @@ const leaf: LeafNode<"items", { label: string }> = {
 
 ### InternalNode
 
-An Internal node must have at least one child.
+An `InternalNode` must have at least one child.
 
 ```ts
 const internal: InternalNode<"nodes", { value: number }> = {
@@ -278,7 +280,7 @@ const internal: InternalNode<"nodes", { value: number }> = {
 
 ### UniformNode
 
-A Uniform node is a Node whose children have the same shape as their parent.
+A `UniformNode` is a Node whose children have the same shape as their parent.
 
 ```ts
 const uniform: UniformNode<"children", { tag: string }> = {
@@ -294,7 +296,7 @@ const uniform: UniformNode<"children", { tag: string }> = {
 
 ### NodeWithId
 
-NodeWithId includes a required ID key (and all of its descendants).
+A `NodeWithId` includes a required ID key (and all of its descendants).
 
 ```ts
 const nodeWithId: NodeWithId<"children", "id"> = {
