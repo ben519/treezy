@@ -38,7 +38,7 @@ const myTree = {
 ```js
 import { getSize } from "treezy"
 
-getSize(myTree)
+getSize(myTree, { childrenKey: "children" })
 // Returns: 3
 ```
 
@@ -47,8 +47,10 @@ getSize(myTree)
 ```js
 import { contains } from "treezy"
 
-contains(myTree, { testFn: (x) => x.id === "Q" })
-// Returns: false
+contains(myTree, {
+  childrenKey: "children",
+  testFn: (x) => x.id === "Q",
+}) // Returns: false
 ```
 
 **Extract the subtree starting at the node with `id` equal to "B"**
@@ -56,8 +58,10 @@ contains(myTree, { testFn: (x) => x.id === "Q" })
 ```js
 import { getSubtree } from "treezy"
 
-getSubtree(myTree, { testFn: (x) => x.id === "B" })
-// Returns: { id: "B", children: [] }
+getSubtree(myTree, {
+  childrenKey: "children",
+  testFn: (x) => x.id === "B",
+}) // Returns: { id: "B", children: [] }
 ```
 
 ## You should know..
