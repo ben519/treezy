@@ -106,6 +106,9 @@ export function getValues<
   const getFn = options?.getFn ?? ((node) => node as unknown as TResult)
   const testFn = options?.testFn ?? (() => true)
 
+  // Make a Weak Set to keep track of nodes for circular reference
+  const visitedNodesSet = new WeakSet()
+
   // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode, TResult> = {
     childrenKey,
@@ -118,6 +121,7 @@ export function getValues<
     copy ? structuredClone(tree) : tree,
     null,
     0,
+    visitedNodesSet,
     helperOptions
   )
 }
@@ -132,10 +136,16 @@ function getValuesHelper<
   node: TCurrentNode,
   parent: TCurrentNode | null,
   depth: number,
+  visited: WeakSet<object>,
   options: HelperOptions<TChildrenKey, TCurrentNode, TResult>
 ): TResult[] {
   const { getFn, testFn, childrenKey } = options
 
+  // Check if this node has already been visited
+  if (visited.has(node)) throw new Error("Circular reference detected")
+  visited.add(node)
+
+  // Array to store results
   const results: TResult[] = []
 
   // Apply testFn to current node
@@ -153,7 +163,7 @@ function getValuesHelper<
 
   // Recurse into children if they exist
   for (const child of childrenArray) {
-    results.push(...getValuesHelper(child, node, depth + 1, options))
+    results.push(...getValuesHelper(child, node, depth + 1, visited, options))
   }
 
   return results
