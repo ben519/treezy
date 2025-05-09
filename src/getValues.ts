@@ -3,11 +3,16 @@ import { Node, UniformNode } from "./types.js"
 // Options for when the input tree is a generic Node
 interface GenericNodeOptions<
   TChildrenKey extends string,
-  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+  TInputNode extends Node<TChildrenKey>,
+  TResult
 > {
   childrenKey: TChildrenKey
   copy?: boolean
-  getFn?: (node: TInputNode, parent: TInputNode | null, depth: number) => any
+  getFn?: (
+    node: TInputNode,
+    parent: TInputNode | null,
+    depth: number
+  ) => TResult
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
@@ -18,15 +23,17 @@ interface GenericNodeOptions<
 // Options specifically for when the input tree is a UniformNode
 interface UniformNodeOptions<
   TChildrenKey extends string,
-  TExtraProps extends object = { [key: string]: unknown },
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
-    TChildrenKey,
-    TExtraProps
-  >
+  TExtraProps extends object,
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps>,
+  TResult
 > {
   childrenKey: TChildrenKey
   copy?: boolean
-  getFn?: (node: TInputNode, parent: TInputNode | null, depth: number) => any
+  getFn?: (
+    node: TInputNode,
+    parent: TInputNode | null,
+    depth: number
+  ) => TResult
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
@@ -39,10 +46,15 @@ interface UniformNodeOptions<
 // TCurrentNode represents the type of the node currently being processed by the helper.
 interface HelperOptions<
   TChildrenKey extends string,
-  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
+  TCurrentNode extends Node<TChildrenKey>,
+  TResult
 > {
   childrenKey: TChildrenKey
-  getFn: (node: TCurrentNode, parent: TCurrentNode | null, depth: number) => any
+  getFn: (
+    node: TCurrentNode,
+    parent: TCurrentNode | null,
+    depth: number
+  ) => TResult
   testFn: (
     node: TCurrentNode,
     parent: TCurrentNode | null,
@@ -56,50 +68,53 @@ interface HelperOptions<
 // When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
 export function getValues<
   TChildrenKey extends string,
-  TExtraProps extends object = { [key: string]: unknown },
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
-    TChildrenKey,
-    TExtraProps
-  >
+  TExtraProps extends object,
+  TInputNode extends UniformNode<TChildrenKey, TExtraProps>,
+  TResult = TInputNode
 >(
   tree: TInputNode,
-  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
-): any[]
+  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode, TResult>
+): TResult[]
 
 // Overload 2: For generic Node (this comes after more specific overloads)
 // When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
 export function getValues<
   TChildrenKey extends string,
-  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
->(tree: TInputNode, options: GenericNodeOptions<TChildrenKey>): any[]
+  TInputNode extends Node<TChildrenKey>,
+  TResult = TInputNode
+>(
+  tree: TInputNode,
+  options: GenericNodeOptions<TChildrenKey, TInputNode, TResult>
+): TResult[]
 
 // --- getValues Implementation ---
 // This single implementation handles both overload cases.
 // TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
 export function getValues<
   TChildrenKey extends string,
-  TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
+  TInputNode extends Node<TChildrenKey>,
+  TResult = TInputNode
 >(
   tree: TInputNode,
   options:
-    | GenericNodeOptions<TChildrenKey, TInputNode>
-    | UniformNodeOptions<TChildrenKey, any, TInputNode>
-): any[] {
+    | GenericNodeOptions<TChildrenKey, TInputNode, TResult>
+    | UniformNodeOptions<TChildrenKey, any, TInputNode, TResult>
+): TResult[] {
   // Resolve defaults
   const childrenKey = options.childrenKey
   const copy = options?.copy ?? false
-  const getFn = options?.getFn ?? ((node) => node)
+  const getFn = options?.getFn ?? ((node) => node as unknown as TResult)
   const testFn = options?.testFn ?? (() => true)
 
   // Prepare options for the internal recursive helper.
-  const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
+  const helperOptions: HelperOptions<TChildrenKey, TInputNode, TResult> = {
     childrenKey,
     testFn,
     getFn,
   }
 
   // Initial call to the recursive helper. TInputNode is the type of the root.
-  return getValuesHelper<TChildrenKey, TInputNode>(
+  return getValuesHelper<TChildrenKey, TInputNode, TResult>(
     copy ? structuredClone(tree) : tree,
     null,
     0,
@@ -111,16 +126,17 @@ export function getValues<
 // TCurrentNode is the type of the node being processed in *this specific recursive step*.
 function getValuesHelper<
   TChildrenKey extends string,
-  TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
+  TCurrentNode extends Node<TChildrenKey>,
+  TResult
 >(
   node: TCurrentNode,
   parent: TCurrentNode | null,
   depth: number,
-  options: HelperOptions<TChildrenKey, TCurrentNode>
-): any[] {
+  options: HelperOptions<TChildrenKey, TCurrentNode, TResult>
+): TResult[] {
   const { getFn, testFn, childrenKey } = options
 
-  const results: any[] = []
+  const results: TResult[] = []
 
   // Apply testFn to current node
   if (testFn(node, parent, depth)) {

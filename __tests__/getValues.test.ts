@@ -90,6 +90,7 @@ describe("getValues function", () => {
       childrenKey: "children",
       getFn: (node) => node.name,
     })
+
     expect(result).toEqual([
       "root",
       "child1",
