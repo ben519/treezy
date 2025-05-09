@@ -1,7 +1,7 @@
-import { getSubtree } from "../src/getSubtree"
+import { getNode } from "../src/getNode"
 import { Node, UniformNode } from "../src/types"
 
-describe("getSubtree", () => {
+describe("getNode", () => {
   // Basic tree structure for generic Node tests
   const genericTree: Node<"children"> = {
     id: "root",
@@ -50,7 +50,7 @@ describe("getSubtree", () => {
   // Test with GenericNode
   describe("with generic Node", () => {
     test("finds a node based on id", () => {
-      const result = getSubtree(genericTree, {
+      const result = getNode(genericTree, {
         childrenKey: "children",
         testFn: (node) => node.id === "child1",
       })
@@ -61,7 +61,7 @@ describe("getSubtree", () => {
     })
 
     test("finds a deeply nested node", () => {
-      const result = getSubtree(genericTree, {
+      const result = getNode(genericTree, {
         childrenKey: "children",
         testFn: (node) => node.id === "grandchild2",
       })
@@ -72,7 +72,7 @@ describe("getSubtree", () => {
     })
 
     test("returns undefined when no node matches", () => {
-      const result = getSubtree(genericTree, {
+      const result = getNode(genericTree, {
         childrenKey: "children",
         testFn: (node) => node.id === "nonexistent",
       })
@@ -81,7 +81,7 @@ describe("getSubtree", () => {
     })
 
     test("uses parent in testFn", () => {
-      const result = getSubtree(genericTree, {
+      const result = getNode(genericTree, {
         childrenKey: "children",
         testFn: (node, parent) =>
           parent?.id === "child1" && node.id === "grandchild1",
@@ -92,7 +92,7 @@ describe("getSubtree", () => {
     })
 
     test("uses depth in testFn", () => {
-      const result = getSubtree(genericTree, {
+      const result = getNode(genericTree, {
         childrenKey: "children",
         testFn: (node, _, depth) => depth === 2,
       })
@@ -114,7 +114,7 @@ describe("getSubtree", () => {
         ],
       }
 
-      const result = getSubtree(customTree, {
+      const result = getNode(customTree, {
         childrenKey: "subNodes",
         testFn: (node) => node.id === "grandchild1",
       })
@@ -126,7 +126,7 @@ describe("getSubtree", () => {
     test("makes a copy when copy option is true", () => {
       const originalTree = { ...genericTree }
 
-      const result = getSubtree(genericTree, {
+      const result = getNode(genericTree, {
         childrenKey: "children",
         testFn: (node) => node.id === "child1",
         copy: true,
@@ -147,7 +147,7 @@ describe("getSubtree", () => {
   // Test with UniformNode
   describe("with UniformNode", () => {
     test("finds a node with custom childrenKey", () => {
-      const result = getSubtree(uniformTree, {
+      const result = getNode(uniformTree, {
         childrenKey: "items",
         testFn: (node) => node.id === "child2",
       })
@@ -158,7 +158,7 @@ describe("getSubtree", () => {
     })
 
     test("finds a deeply nested node in UniformNode", () => {
-      const result = getSubtree(uniformTree, {
+      const result = getNode(uniformTree, {
         childrenKey: "items",
         testFn: (node) => node.value === "Grandchild 3",
       })
@@ -168,7 +168,7 @@ describe("getSubtree", () => {
     })
 
     test("maintains type information", () => {
-      const result = getSubtree(uniformTree, {
+      const result = getNode(uniformTree, {
         childrenKey: "items",
         testFn: (node) => node.id === "child1",
       })
@@ -184,14 +184,14 @@ describe("getSubtree", () => {
     test("handles empty tree", () => {
       const emptyTree: Node<"children"> = { id: "empty" }
 
-      const result = getSubtree(emptyTree, {
+      const result = getNode(emptyTree, {
         childrenKey: "children",
         testFn: (node) => node.id === "anything",
       })
 
       // Should return the node itself if it matches
       expect(
-        getSubtree(emptyTree, {
+        getNode(emptyTree, {
           childrenKey: "children",
           testFn: (node) => node.id === "empty",
         })
@@ -207,7 +207,7 @@ describe("getSubtree", () => {
         children: null as any,
       }
 
-      const result = getSubtree(treeWithNullChildren, {
+      const result = getNode(treeWithNullChildren, {
         childrenKey: "children",
         testFn: (node) => node.id === "root",
       })
@@ -223,7 +223,7 @@ describe("getSubtree", () => {
         // children is undefined
       }
 
-      const result = getSubtree(treeWithUndefinedChildren, {
+      const result = getNode(treeWithUndefinedChildren, {
         childrenKey: "children",
         testFn: (node) => node.id === "root",
       })
@@ -233,7 +233,7 @@ describe("getSubtree", () => {
     })
 
     test("default testFn returns first node", () => {
-      const result = getSubtree(genericTree, { childrenKey: "children" })
+      const result = getNode(genericTree, { childrenKey: "children" })
 
       expect(result).toBeDefined()
       expect(result?.id).toBe("root")
@@ -243,7 +243,7 @@ describe("getSubtree", () => {
   // Test for complex search criteria
   describe("complex search criteria", () => {
     test("finds nodes using multiple conditions", () => {
-      const result = getSubtree(genericTree, {
+      const result = getNode(genericTree, {
         childrenKey: "children",
         testFn: (node) =>
           typeof node.id === "string" &&
@@ -257,7 +257,7 @@ describe("getSubtree", () => {
 
     test("finds node at specific path", () => {
       // Find a node that's specifically a child of 'child2'
-      const result = getSubtree(genericTree, {
+      const result = getNode(genericTree, {
         childrenKey: "children",
         testFn: (node, parent) =>
           node.id === "grandchild3" && parent?.id === "child2",

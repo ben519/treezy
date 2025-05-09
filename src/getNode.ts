@@ -47,11 +47,11 @@ interface HelperOptions<
   ) => boolean
 }
 
-// --- getSubtree Function Overloads ---
+// --- getNode Function Overloads ---
 
 // Overload 1: For UniformNode
 // When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
-export function getSubtree<
+export function getNode<
   TChildrenKey extends string,
   TExtraProps extends object = { [key: string]: unknown },
   TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
@@ -65,7 +65,7 @@ export function getSubtree<
 
 // Overload 2: For generic Node (this comes after more specific overloads)
 // When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
-export function getSubtree<
+export function getNode<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
@@ -73,10 +73,10 @@ export function getSubtree<
   options: GenericNodeOptions<TChildrenKey>
 ): TInputNode | undefined
 
-// --- getSubtree Implementation ---
+// --- getNode Implementation ---
 // This single implementation handles both overload cases.
 // TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
-export function getSubtree<
+export function getNode<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
@@ -97,7 +97,7 @@ export function getSubtree<
   }
 
   // Initial call to the recursive helper. TInputNode is the type of the root.
-  return getSubtreeHelper<TChildrenKey, TInputNode>(
+  return getNodeHelper<TChildrenKey, TInputNode>(
     copy ? structuredClone(tree) : tree,
     null,
     0,
@@ -105,9 +105,9 @@ export function getSubtree<
   )
 }
 
-// --- getSubtreeHelper (Recursive Part) ---
+// --- getNodeHelper (Recursive Part) ---
 // TCurrentNode is the type of the node being processed in *this specific recursive step*.
-function getSubtreeHelper<
+function getNodeHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
@@ -128,7 +128,7 @@ function getSubtreeHelper<
 
   // Recursively check each child subtree
   for (const child of childrenArray ?? []) {
-    const subtree = getSubtreeHelper(child, node, depth + 1, options)
+    const subtree = getNodeHelper(child, node, depth + 1, options)
     if (subtree) return subtree
   }
 

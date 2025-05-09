@@ -56,9 +56,9 @@ contains(myTree, {
 **Extract the subtree starting at the node with `id` equal to "B"**
 
 ```js
-import { getSubtree } from "treezy"
+import { getNode } from "treezy"
 
-getSubtree(myTree, {
+getNode(myTree, {
   childrenKey: "children",
   testFn: (x) => x.id === "B",
 }) // Returns: { id: "B", children: [] }
@@ -119,10 +119,10 @@ const tree4 = {
 - **`bifurcate(tree, options)`** - split a tree into two subtrees
 - **`contains(tree, options)`** - check if a tree contains a node that passes some test
 - **`getDepth(tree, options)`** - get the number of nodes in a tree
+- **`getNode(tree, options)`** - find a node that passes some test and return it
 - **`getParent(tree, options)`** - find a node that passes some test and return its parent
 - **`getSignature(tree, options)`** - combine the node ids and structure into a unique id
 - **`getSize(tree, options)`** - count the number of nodes in a tree
-- **`getSubtree(tree, options)`** - retrieve the subtree of a tree starting at some node
 - **`getValues(tree, options)`** - retrieve the nodes or node properties as an array
 - **`insert(tree, options)`** - insert one tree into another
 - **`isInternalNode(tree, options)`** - test if something is an internal node
