@@ -180,7 +180,7 @@ const comment = {
 ```js
 import { getSize } from "treezy"
 
-getSize(comment) // 4
+getSize(comment, { childrenKey: "replies" }) // 4
 ```
 
 ### How do I count the number of comments by a particular user?
@@ -188,7 +188,10 @@ getSize(comment) // 4
 ```js
 import { getSize } from "treezy"
 
-getSize(comment, { testFn: (node) => node.userId === 489294 }) // 2
+getSize(comment, {
+  childrenKey: "replies",
+  testFn: (node) => node.userId === 489294,
+}) // 2
 ```
 
 ### How do I determine the max number of likes given to any single comment?
@@ -197,7 +200,12 @@ getSize(comment, { testFn: (node) => node.userId === 489294 }) // 2
 import { reduce } from "treezy"
 
 const reducer = (node, initVal) => Math.max(node.likes, initVal)
-reduce(comment, { reduceFn: reducer, initialVal: 0 }) // 3
+
+reduce(comment, {
+  childrenKey: "replies",
+  reduceFn: reducer,
+  initialVal: 0,
+}) // 3
 ```
 
 ### How do I flatten the comments into a 1-D array?
@@ -205,7 +213,8 @@ reduce(comment, { reduceFn: reducer, initialVal: 0 }) // 3
 ```js
 import { getValues } from "treezy"
 
-getValues(comment) // [{id: 234424, ...}, {id: 248210, ...}, ...]
+getValues(comment, { childrenKey: "replies" })
+// [{id: 234424, ...}, {id: 248210, ...}, ...]
 ```
 
 ### How do I retrieve all the comment values?
@@ -213,8 +222,10 @@ getValues(comment) // [{id: 234424, ...}, {id: 248210, ...}, ...]
 ```js
 import { getValues } from "treezy"
 
-getValues(comment, { getFn: (node) => node.text })
-// ["I like dogs", "So do I!", ...]
+getValues(comment, {
+  childrenKey: "replies",
+  getFn: (node) => node.text,
+}) // ["I like dogs", "So do I!", ...]
 ```
 
 ### How do I remove comments which are replies to replies, or deeper?
@@ -222,7 +233,10 @@ getValues(comment, { getFn: (node) => node.text })
 ```js
 import { prune } from "treezy"
 
-prune(comment, { testFn: (node, parent, depth) => depth >= 2 })
+prune(comment, {
+  childrenKey: "replies",
+  testFn: (node, parent, depth) => depth >= 2,
+})
 ```
 
 ## Typescript
