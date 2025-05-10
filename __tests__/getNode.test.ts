@@ -267,4 +267,60 @@ describe("getNode", () => {
       expect(result?.id).toBe("grandchild3")
     })
   })
+
+  describe("circular reference detection", () => {
+    test("throws error on circular reference in generic Node", () => {
+      const circularTree: Node<"children"> = {
+        id: "root",
+        value: "Root Node",
+        children: [],
+      }
+      // Create circular reference
+      const child: Node<"children"> = {
+        id: "child1",
+        value: "Child 1",
+        children: [],
+      }
+      child.children!.push(circularTree) // circular
+      child.children!.push({ id: "grandchild1", value: "Grandchild 1" }) // circular
+      circularTree.children!.push(child)
+
+      expect(() =>
+        getNode(circularTree, {
+          childrenKey: "children",
+          testFn: (node) => node.id === "grandchild1",
+        })
+      ).toThrow("Circular reference detected")
+    })
+
+    test("throws error on circular reference in UniformNode", () => {
+      interface MyNode
+        extends UniformNode<"items", { id: string; value: string }> {}
+
+      const circularTree: MyNode = {
+        id: "root",
+        value: "Root Node",
+        items: [],
+      }
+      const child: MyNode = {
+        id: "child1",
+        value: "Child 1",
+        items: [],
+      }
+      child.items!.push(circularTree as MyNode) // circular
+      child.items!.push({
+        id: "grandchild1",
+        value: "Grandchild 1",
+        items: [],
+      })
+      circularTree.items!.push(child)
+
+      expect(() =>
+        getNode(circularTree, {
+          childrenKey: "items",
+          testFn: (node) => node.id === "grandchild1",
+        })
+      ).toThrow("Circular reference detected")
+    })
+  })
 })

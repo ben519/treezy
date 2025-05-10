@@ -84,6 +84,9 @@ export function getSize<
   const childrenKey = options.childrenKey
   const testFn = options?.testFn ?? (() => true)
 
+  // Make a Weak Set to keep track of nodes for circular reference
+  const visitedNodesSet = new WeakSet()
+
   // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
@@ -91,7 +94,13 @@ export function getSize<
   }
 
   // Initial call to the recursive helper. TInputNode is the type of the root.
-  return getSizeHelper<TChildrenKey, TInputNode>(tree, null, 0, helperOptions)
+  return getSizeHelper<TChildrenKey, TInputNode>(
+    tree,
+    null,
+    0,
+    visitedNodesSet,
+    helperOptions
+  )
 }
 
 // --- getSizeHelper (Recursive Part) ---
@@ -103,9 +112,14 @@ function getSizeHelper<
   node: TCurrentNode,
   parent: TCurrentNode | null,
   depth: number,
+  visited: WeakSet<object>,
   options: HelperOptions<TChildrenKey, TCurrentNode>
 ): number {
   const { childrenKey, testFn } = options
+
+  // Check if this node has already been visited
+  if (visited.has(node)) throw new Error("Circular reference detected")
+  visited.add(node)
 
   // Evaluate the current node using the provided testFn.
   // 'node' here is TCurrentNode, which matches what 'testFn' expects.
@@ -120,6 +134,7 @@ function getSizeHelper<
 
   // If this is a leaf node...
   if (!childrenArray || childrenArray.length === 0) {
+    visited.delete(node)
     return count
   }
 
@@ -127,8 +142,9 @@ function getSizeHelper<
   const countDescendants = childrenArray.reduce((sum, childNode) => {
     // 'childNode' is of type TCurrentNode.
     // The same 'options' (including the testFn expecting TCurrentNode) are passed down.
-    return sum + getSizeHelper(childNode, node, depth + 1, options)
+    return sum + getSizeHelper(childNode, node, depth + 1, visited, options)
   }, 0)
 
+  visited.delete(node)
   return count + countDescendants
 }

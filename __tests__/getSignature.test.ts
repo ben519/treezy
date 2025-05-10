@@ -9,7 +9,7 @@ describe("getSignature", () => {
       children: [{ id: "child1" }, { id: "child2" }],
     }
 
-    const result = getSignature(tree, { childrenKey: "children" })
+    const result = getSignature(tree, { childrenKey: "children", idKey: "id" })
     expect(result).toBe("root[child1,child2]")
   })
 
@@ -26,7 +26,7 @@ describe("getSignature", () => {
       ],
     }
 
-    const result = getSignature(tree, { childrenKey: "children" })
+    const result = getSignature(tree, { childrenKey: "children", idKey: "id" })
     expect(result).toBe("root[child1[grandchild1,grandchild2],child2]")
   })
 
@@ -39,8 +39,9 @@ describe("getSignature", () => {
 
     const result = getSignature(tree, {
       childrenKey: "children",
-      openChar: "{",
       closeChar: "}",
+      idKey: "id",
+      openChar: "{",
       separatorChar: "|",
     })
 
@@ -59,7 +60,7 @@ describe("getSignature", () => {
       items: [{ id: "item1" }, { id: "item2" }],
     }
 
-    const result = getSignature(tree, { childrenKey: "items" })
+    const result = getSignature(tree, { childrenKey: "items", idKey: "id" })
     expect(result).toBe("root[item1,item2]")
   })
 
@@ -94,7 +95,7 @@ describe("getSignature", () => {
       children: [{ id: 2 }, { id: 3, children: [{ id: 4 }] }],
     }
 
-    const result = getSignature(tree, { childrenKey: "children" })
+    const result = getSignature(tree, { childrenKey: "children", idKey: "id" })
     expect(result).toBe("1[2,3[4]]")
   })
 
@@ -144,7 +145,7 @@ describe("getSignature", () => {
       someData: "extra info",
     }
 
-    const result = getSignature(tree, { childrenKey: "children" })
+    const result = getSignature(tree, { childrenKey: "children", idKey: "id" })
     expect(result).toBe("leaf")
   })
 
@@ -155,7 +156,7 @@ describe("getSignature", () => {
       children: [],
     }
 
-    const result = getSignature(tree, { childrenKey: "children" })
+    const result = getSignature(tree, { childrenKey: "children", idKey: "id" })
     expect(result).toBe("root")
   })
 
@@ -166,7 +167,7 @@ describe("getSignature", () => {
       children: undefined,
     }
 
-    const result = getSignature(tree, { childrenKey: "children" })
+    const result = getSignature(tree, { childrenKey: "children", idKey: "id" })
     expect(result).toBe("root")
   })
 
@@ -185,7 +186,43 @@ describe("getSignature", () => {
       children: [{ id: ID_2 }],
     }
 
-    const result = getSignature(tree, { childrenKey: "children" })
+    const result = getSignature(tree, { childrenKey: "children", idKey: "id" })
     expect(result).toBe(`${String(ID_1)}[${String(ID_2)}]`)
+  })
+
+  // Test with circular reference
+  test("should throw an error for circular reference", () => {
+    const tree: NodeWithId<"children", "id"> = {
+      id: "root",
+      children: [],
+    }
+
+    // Create a circular reference: child -> parent
+    const child: NodeWithId<"children", "id"> = { id: "child", children: [] }
+    tree.children!.push(child)
+    child.children!.push(tree as any) // force a circular reference
+
+    expect(() => {
+      getSignature(tree, { childrenKey: "children", idKey: "id" })
+    }).toThrow("Circular reference detected")
+  })
+
+  // Test with deeper circular reference
+  test("should throw an error for deep circular reference", () => {
+    const tree: NodeWithId<"children", "id"> = {
+      id: "root",
+      children: [],
+    }
+
+    const child1: NodeWithId<"children", "id"> = { id: "child1", children: [] }
+    const child2: NodeWithId<"children", "id"> = { id: "child2", children: [] }
+
+    tree.children!.push(child1)
+    child1.children!.push(child2)
+    child2.children!.push(tree as any) // circular reference back to root
+
+    expect(() => {
+      getSignature(tree, { childrenKey: "children", idKey: "id" })
+    }).toThrow("Circular reference detected")
   })
 })

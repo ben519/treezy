@@ -90,6 +90,9 @@ export function prune<
   const copy = options.copy ?? false
   const testFn = options.testFn
 
+  // Make a Weak Set to keep track of nodes for circular reference
+  const visitedNodesSet = new WeakSet()
+
   // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
@@ -101,6 +104,7 @@ export function prune<
     copy ? structuredClone(tree) : tree,
     null,
     0,
+    visitedNodesSet,
     helperOptions
   )
 }
@@ -114,9 +118,14 @@ function pruneHelper<
   node: TCurrentNode,
   parent: TCurrentNode | null,
   depth: number,
+  visited: WeakSet<object>,
   options: HelperOptions<TChildrenKey, TCurrentNode>
 ): TCurrentNode | null {
   const { testFn, childrenKey } = options
+
+  // Check if this node has already been visited
+  if (visited.has(node)) throw new Error("Circular reference detected")
+  visited.add(node)
 
   // Check if this node passes testFn
   if (testFn(node, parent, depth)) {
@@ -128,15 +137,17 @@ function pruneHelper<
 
   // If this is a leaf node...
   if (!childrenArray || childrenArray.length === 0) {
+    visited.delete(node)
     return node
   }
 
   // Prune each child of this node
   for (let i = childrenArray.length - 1; i >= 0; i--) {
     const child = childrenArray[i]
-    const newChild = pruneHelper(child, node, depth + 1, options)
+    const newChild = pruneHelper(child, node, depth + 1, visited, options)
     if (newChild === null) childrenArray.splice(i, 1)
   }
 
+  visited.delete(node)
   return node
 }

@@ -274,4 +274,76 @@ describe("prune function", () => {
       ).not.toThrow()
     })
   })
+
+  describe("prune function", () => {
+    // ... (previous tests)
+
+    describe("circular reference detection", () => {
+      test("should throw 'Circular reference detected' for a simple parent reference", () => {
+        const node1: Node<"children"> = { id: "node1" }
+        const node2: Node<"children"> = { id: "node2" }
+        node1.children = [node2]
+        node2.children = [node1] // node2 references node1
+
+        expect(() =>
+          prune(node1, { childrenKey: "children", testFn: () => false })
+        ).toThrow("Circular reference detected")
+      })
+
+      test("should throw 'Circular reference detected' for an ancestor reference", () => {
+        const root: Node<"children"> = { id: "root" }
+        const branch1: Node<"children"> = { id: "branch1" }
+        const leaf1: Node<"children"> = { id: "leaf1" }
+        root.children = [branch1]
+        branch1.children = [leaf1]
+        leaf1.children = [root] // leaf1 references root
+
+        expect(() =>
+          prune(root, { childrenKey: "children", testFn: () => false })
+        ).toThrow("Circular reference detected")
+      })
+
+      test("should throw 'Circular reference detected' for a self-referencing node", () => {
+        const node: Node<"children"> = { id: "self" }
+        node.children = [node] // Node references itself
+
+        expect(() =>
+          prune(node, { childrenKey: "children", testFn: () => false })
+        ).toThrow("Circular reference detected")
+      })
+
+      test("should throw 'Circular reference detected' for a complex circular path", () => {
+        const n1: Node<"children"> = { id: "n1" }
+        const n2: Node<"children"> = { id: "n2" }
+        const n3: Node<"children"> = { id: "n3" }
+        const n4: Node<"children"> = { id: "n4" }
+        n1.children = [n2]
+        n2.children = [n3]
+        n3.children = [n4]
+        n4.children = [n2] // Creates a cycle n2 -> n3 -> n4 -> n2
+
+        expect(() =>
+          prune(n1, { childrenKey: "children", testFn: () => false })
+        ).toThrow("Circular reference detected")
+      })
+
+      test("should not throw for a valid tree structure", () => {
+        const tree: Node<"children"> = {
+          id: "root",
+          children: [
+            { id: "child1" },
+            {
+              id: "child2",
+              children: [{ id: "grandchild1" }, { id: "grandchild2" }],
+            },
+          ],
+        }
+
+        // This is a valid tree, should not throw
+        expect(() =>
+          prune(tree, { childrenKey: "children", testFn: () => false })
+        ).not.toThrow("Circular reference detected")
+      })
+    })
+  })
 })

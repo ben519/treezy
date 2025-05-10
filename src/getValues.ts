@@ -156,15 +156,11 @@ function getValuesHelper<
   // Get the children array.
   const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
 
-  // If this is a leaf node...
-  if (!childrenArray || childrenArray.length === 0) {
-    return results
-  }
-
   // Recurse into children if they exist
-  for (const child of childrenArray) {
+  for (const child of childrenArray ?? []) {
     results.push(...getValuesHelper(child, node, depth + 1, visited, options))
   }
 
+  visited.delete(node)
   return results
 }

@@ -17,12 +17,15 @@ export function getDepth<
   // Resolve defaults
   const childrenKey = options.childrenKey
 
+  // Make a Weak Set to keep track of nodes for circular reference
+  const visitedNodesSet = new WeakSet()
+
   // Prepare options for the recursive helper
   const helperOptions: HelperOptions<TChildrenKey> = {
     childrenKey,
   }
 
-  return getDepthHelper<TChildrenKey>(tree, 0, helperOptions)
+  return getDepthHelper<TChildrenKey>(tree, 0, visitedNodesSet, helperOptions)
 }
 
 function getDepthHelper<
@@ -31,23 +34,30 @@ function getDepthHelper<
 >(
   node: TCurrentNode,
   depth: number,
+  visited: WeakSet<object>,
   options: HelperOptions<TChildrenKey>
 ): number {
   const { childrenKey } = options
+
+  // Check if this node has already been visited
+  if (visited.has(node)) throw new Error("Circular reference detected")
+  visited.add(node)
 
   // Get the children array
   const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
 
   // If this is a leaf node
   if (!childrenArray || childrenArray.length === 0) {
+    visited.delete(node)
     return depth
   }
 
   // Get the depth of each child subtree
   const childDepths = childrenArray.map((child) =>
-    getDepthHelper(child, depth + 1, options)
+    getDepthHelper(child, depth + 1, visited, options)
   )
 
   // Return the maximum depth found
+  visited.delete(node)
   return Math.max(...childDepths)
 }

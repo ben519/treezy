@@ -104,6 +104,9 @@ export function bifurcate<
   const copy = options.copy ?? false
   const testFn = options.testFn
 
+  // Make a Weak Set to keep track of nodes for circular reference
+  const visitedNodesSet = new WeakSet()
+
   // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
@@ -115,6 +118,7 @@ export function bifurcate<
     copy ? structuredClone(tree) : tree,
     null,
     0,
+    visitedNodesSet,
     helperOptions
   )
 }
@@ -128,6 +132,7 @@ function bifurcateHelper<
   node: TCurrentNode,
   parent: TCurrentNode | null,
   depth: number,
+  visited: WeakSet<object>,
   options: HelperOptions<TChildrenKey, TCurrentNode>
 ):
   | { parent: TCurrentNode; child: TCurrentNode }
@@ -135,6 +140,10 @@ function bifurcateHelper<
   | { parent: TCurrentNode; child: null } {
   // Destructure options
   const { testFn, childrenKey } = options
+
+  // Check if this node has already been visited
+  if (visited.has(node)) throw new Error("Circular reference detected")
+  visited.add(node)
 
   // This node is a match, exit early
   if (testFn(node, parent, depth)) {
@@ -146,12 +155,13 @@ function bifurcateHelper<
 
   // If this is a leaf node...
   if (!childrenArray || childrenArray.length === 0) {
+    visited.delete(node)
     return { parent: node, child: null }
   }
 
   // Check each child
   for (const [i, child] of childrenArray.entries()) {
-    const result = bifurcateHelper(child, node, depth + 1, options)
+    const result = bifurcateHelper(child, node, depth + 1, visited, options)
 
     // If this child was successfully bifurcated, return
     if (result.child) {
@@ -171,5 +181,6 @@ function bifurcateHelper<
   }
 
   // If we made it this far, a matching node was not found
+  visited.delete(node)
   return { parent: node, child: null }
 }

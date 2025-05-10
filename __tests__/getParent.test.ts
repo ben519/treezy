@@ -219,51 +219,6 @@ describe("getParent function", () => {
     })
   })
 
-  // // Test copy option
-  // describe("copy option", () => {
-  //   test("should copy the tree when copy is true", () => {
-  //     const originalTree: Node<"children"> = {
-  //       id: "root",
-  //       children: [{ id: "child1" }],
-  //     }
-
-  //     // Spy on structuredClone
-  //     const originalStructuredClone = global.structuredClone
-  //     global.structuredClone = jest.fn(originalStructuredClone)
-
-  //     getParent(originalTree, {
-  //       testFn: (node) => node.id === "child1",
-  //       copy: true,
-  //     })
-
-  //     expect(global.structuredClone).toHaveBeenCalledWith(originalTree)
-
-  //     // Restore original function
-  //     global.structuredClone = originalStructuredClone
-  //   })
-
-  //   test("should not copy the tree when copy is false", () => {
-  //     const originalTree: Node<"children"> = {
-  //       id: "root",
-  //       children: [{ id: "child1" }],
-  //     }
-
-  //     // Spy on structuredClone
-  //     const originalStructuredClone = global.structuredClone
-  //     global.structuredClone = jest.fn(originalStructuredClone)
-
-  //     getParent(originalTree, {
-  //       testFn: (node) => node.id === "child1",
-  //       copy: false,
-  //     })
-
-  //     expect(global.structuredClone).not.toHaveBeenCalled()
-
-  //     // Restore original function
-  //     global.structuredClone = originalStructuredClone
-  //   })
-  // })
-
   // Edge cases
   describe("edge cases", () => {
     test("should handle complex trees with multiple matching conditions", () => {
@@ -363,14 +318,147 @@ describe("getParent function", () => {
       })
 
       expect(result?.id).toBe("root")
+    })
+  })
 
-      // This would cause infinite recursion if circular references aren't handled
-      // But our implementation follows references without keeping track of visited nodes
-      // So this is expected to go into infinite recursion or stack overflow
-      // This is a limitation of the current implementation
+  // Tests for circular references
+  describe("circular references", () => {
+    test("should throw error when direct circular reference is detected", () => {
+      // Create a tree with a direct circular reference
+      const tree: Node<"children"> = { id: "root" }
+      const child: Node<"children"> = { id: "child" }
+      tree.children = [child]
 
-      // To test this properly, we would need to modify the implementation to handle circular references
-      // Or implement a timeout mechanism in the test
+      // Create circular reference - child points back to root
+      // @ts-ignore - TypeScript won't allow this directly
+      child.children = [tree]
+
+      expect(() => {
+        getParent(tree, {
+          childrenKey: "children",
+          testFn: (node) => node.id === "nonexistent",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should throw error when indirect circular reference is detected", () => {
+      // Create a tree with an indirect circular reference (A -> B -> C -> A)
+      const nodeA: Node<"children"> = { id: "A" }
+      const nodeB: Node<"children"> = { id: "B" }
+      const nodeC: Node<"children"> = { id: "C" }
+
+      nodeA.children = [nodeB]
+      nodeB.children = [nodeC]
+      // @ts-ignore - TypeScript won't allow this directly
+      nodeC.children = [nodeA]
+
+      expect(() => {
+        getParent(nodeA, {
+          childrenKey: "children",
+          testFn: (node) => node.id === "nonexistent",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should throw error when self-referential node is detected", () => {
+      // Create a node that references itself
+      const tree: Node<"children"> = { id: "root" }
+
+      // @ts-ignore - TypeScript won't allow this directly
+      tree.children = [tree]
+
+      expect(() => {
+        getParent(tree, {
+          childrenKey: "children",
+          testFn: (node) => node.id === "nonexistent",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should throw error with circular reference in deep nesting", () => {
+      // Create a deeply nested tree with a circular reference at the bottom
+      const root: Node<"children"> = { id: "root" }
+      const level1: Node<"children"> = { id: "level1" }
+      const level2: Node<"children"> = { id: "level2" }
+      const level3: Node<"children"> = { id: "level3" }
+
+      root.children = [level1]
+      level1.children = [level2]
+      level2.children = [level3]
+      // @ts-ignore - TypeScript won't allow this directly
+      level3.children = [level1] // Points back to level1, creating a cycle
+
+      expect(() => {
+        getParent(root, {
+          childrenKey: "children",
+          testFn: (node) => node.id === "nonexistent",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should throw error with circular reference in UniformNode type", () => {
+      interface Person
+        extends UniformNode<"reports", { name: string; age: number }> {}
+
+      // Create an organization with a circular reference
+      const ceo: Person = {
+        name: "CEO",
+        age: 55,
+        reports: [],
+      }
+
+      const cto: Person = {
+        name: "CTO",
+        age: 45,
+        reports: [],
+      }
+
+      const developer: Person = {
+        name: "Developer",
+        age: 30,
+        reports: [],
+      }
+
+      ceo.reports = [cto]
+      cto.reports = [developer]
+      // @ts-ignore - Creating circular reference
+      developer.reports = [cto] // Developer reports to CTO, creating a cycle
+
+      expect(() => {
+        getParent<"reports", { name: string; age: number }>(ceo, {
+          childrenKey: "reports",
+          testFn: (node) => node.name === "nonexistent",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should throw error with circular reference using custom childrenKey", () => {
+      interface Department
+        extends UniformNode<"teams", { name: string; budget: number }> {}
+
+      // Create a company with a circular reference
+      const company: Department = {
+        name: "Company",
+        budget: 1000000,
+        teams: [],
+      }
+
+      const engineering: Department = {
+        name: "Engineering",
+        budget: 500000,
+        teams: [],
+      }
+
+      company.teams = [engineering]
+      // @ts-ignore - Creating circular reference
+      engineering.teams = [company] // Engineering has company as a team, creating a cycle
+
+      expect(() => {
+        getParent<"teams", { name: string; budget: number }>(company, {
+          childrenKey: "teams",
+          testFn: (node) => node.name === "nonexistent",
+        })
+      }).toThrow("Circular reference detected")
     })
   })
 })

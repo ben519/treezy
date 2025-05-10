@@ -420,4 +420,82 @@ describe("insert function", () => {
       expect(result?.children).toEqual([nodeToInsert])
     })
   })
+
+  describe("circular reference detection", () => {
+    test("should throw error if a node's child is the node itself", () => {
+      // Setup a tree with a self-referencing node
+      const circularNode: Node<"children"> = { id: "circular" }
+      circularNode.children = [circularNode] // Circular reference
+
+      const tree: Node<"children"> = {
+        id: "root",
+        children: [{ id: "child1" }, circularNode, { id: "child2" }],
+      }
+
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
+
+      // Execute and Assert
+      expect(() => {
+        insert(tree, {
+          childrenKey: "children",
+          nodeToInsert,
+          testFn: (node) => node.id === "child2",
+          direction: "below",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should throw error if a node's child is an ancestor node", () => {
+      // Setup a tree with a child referencing an ancestor
+      const root: Node<"children"> = { id: "root" }
+      const child1: Node<"children"> = { id: "child1" }
+      const grandchild1: Node<"children"> = { id: "grandchild1" }
+
+      root.children = [child1]
+      child1.children = [grandchild1]
+      grandchild1.children = [root] // Circular reference to root
+
+      const tree = root
+
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
+
+      // Execute and Assert
+      expect(() => {
+        insert(tree, {
+          childrenKey: "children",
+          nodeToInsert,
+          testFn: (node) => node.id === "child2", // Search for a non-existent node
+          direction: "below",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should throw error for a more complex circular chain", () => {
+      // Setup a tree with a circular chain
+      const nodeA: Node<"children"> = { id: "A" }
+      const nodeB: Node<"children"> = { id: "B" }
+      const nodeC: Node<"children"> = { id: "C" }
+
+      nodeA.children = [nodeB]
+      nodeB.children = [nodeC]
+      nodeC.children = [nodeA] // Circular reference A -> B -> C -> A
+
+      const tree: Node<"children"> = {
+        id: "root",
+        children: [{ id: "child1" }, nodeA, { id: "child2" }],
+      }
+
+      const nodeToInsert: Node<"children"> = { id: "new-node" }
+
+      // Execute and Assert
+      expect(() => {
+        insert(tree, {
+          childrenKey: "children",
+          nodeToInsert,
+          testFn: (node) => node.id === "child2", // Search for a non-existent node
+          direction: "after",
+        })
+      }).toThrow("Circular reference detected")
+    })
+  })
 })

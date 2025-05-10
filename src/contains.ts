@@ -82,6 +82,9 @@ export function contains<
   const childrenKey = options.childrenKey
   const testFn = options.testFn
 
+  // Make a Weak Set to keep track of nodes for circular reference
+  const visitedNodesSet = new WeakSet()
+
   // Prepare options for the internal recursive helper.
   const helperOptions: ContainsHelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
@@ -89,7 +92,13 @@ export function contains<
   }
 
   // Initial call to the recursive helper. TInputNode is the type of the root.
-  return containsHelper<TChildrenKey, TInputNode>(tree, null, 0, helperOptions)
+  return containsHelper<TChildrenKey, TInputNode>(
+    tree,
+    null,
+    0,
+    visitedNodesSet,
+    helperOptions
+  )
 }
 
 // --- containsHelper (Recursive Part) ---
@@ -101,25 +110,28 @@ function containsHelper<
   node: TCurrentNode,
   parent: TCurrentNode | null,
   depth: number,
+  visited: WeakSet<object>,
   options: ContainsHelperOptions<TChildrenKey, TCurrentNode>
 ): boolean {
   const { childrenKey, testFn } = options
 
+  // Check if this node has already been visited
+  if (visited.has(node)) throw new Error("Circular reference detected")
+  visited.add(node)
+
+  // If this node passes the test, return true early
   if (testFn(node, parent, depth)) {
     return true
   }
 
+  // Recursively check the children
   const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
-
-  if (!childrenArray || childrenArray.length === 0) {
-    return false
-  }
-
-  for (const childNode of childrenArray) {
-    if (containsHelper(childNode, node, depth + 1, options)) {
+  for (const childNode of childrenArray ?? []) {
+    if (containsHelper(childNode, node, depth + 1, visited, options)) {
       return true
     }
   }
 
+  visited.delete(node)
   return false
 }

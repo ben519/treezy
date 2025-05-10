@@ -313,4 +313,116 @@ describe("reduce function", () => {
       employeeCount: 6,
     })
   })
+
+  describe("reduce function - Circular Reference Detection", () => {
+    // Test case 10: Direct circular reference (node is its own child)
+    test("should throw 'Circular reference detected' for a direct self-referencing cycle", () => {
+      const circularTree: any = {
+        value: 1,
+        children: [],
+      }
+      circularTree.children.push(circularTree) // Node points to itself
+
+      expect(() =>
+        reduce(circularTree, {
+          childrenKey: "children",
+          reduceFn: (node, acc) => acc + (node.value as number),
+          initialVal: 0,
+        })
+      ).toThrow("Circular reference detected")
+    })
+
+    // Test case 11: Circular reference to an ancestor (child points to parent)
+    test("should throw 'Circular reference detected' for a child referencing its parent", () => {
+      const parentNode: any = {
+        value: 1,
+        children: [],
+      }
+      const childNode: any = {
+        value: 2,
+        children: [],
+      }
+      parentNode.children.push(childNode)
+      childNode.children.push(parentNode) // Child points back to parent
+
+      expect(() =>
+        reduce(parentNode, {
+          childrenKey: "children",
+          reduceFn: (node, acc) => acc + (node.value as number),
+          initialVal: 0,
+        })
+      ).toThrow("Circular reference detected")
+    })
+
+    // Test case 12: Deeper circular reference to an ancestor (grandchild points to grandparent)
+    test("should throw 'Circular reference detected' for a grandchild referencing its grandparent", () => {
+      const grandparentNode: any = {
+        value: 1,
+        children: [],
+      }
+      const parentNode: any = {
+        value: 2,
+        children: [],
+      }
+      const childNode: any = {
+        value: 3,
+        children: [],
+      }
+      grandparentNode.children.push(parentNode)
+      parentNode.children.push(childNode)
+      childNode.children.push(grandparentNode) // Grandchild points back to grandparent
+
+      expect(() =>
+        reduce(grandparentNode, {
+          childrenKey: "children",
+          reduceFn: (node, acc) => acc + (node.value as number),
+          initialVal: 0,
+        })
+      ).toThrow("Circular reference detected")
+    })
+
+    // Test case 13: Circular reference involving a sibling's descendant
+    test("should throw 'Circular reference detected' for a cycle involving a sibling's descendant", () => {
+      const root: any = { value: 1, children: [] }
+      const child1: any = { value: 2, children: [] }
+      const child2: any = { value: 3, children: [] }
+      const grandchild1: any = { value: 4, children: [] }
+
+      root.children.push(child1, child2)
+      child1.children.push(grandchild1)
+      child2.children.push(grandchild1) // child2 points to grandchild of child1 - NOT a cycle in itself, but building up to it.
+
+      // To create a cycle: grandchild1 now points back to the root
+      grandchild1.children.push(root)
+
+      expect(() =>
+        reduce(root, {
+          childrenKey: "children",
+          reduceFn: (node, acc) => acc + (node.value as number),
+          initialVal: 0,
+        })
+      ).toThrow("Circular reference detected")
+    })
+
+    // Test case 14: Complex circular reference path
+    test("should throw 'Circular reference detected' for a complex circular path", () => {
+      const nodeA: any = { value: "A", children: [] }
+      const nodeB: any = { value: "B", children: [] }
+      const nodeC: any = { value: "C", children: [] }
+      const nodeD: any = { value: "D", children: [] }
+
+      nodeA.children.push(nodeB)
+      nodeB.children.push(nodeC)
+      nodeC.children.push(nodeD)
+      nodeD.children.push(nodeB) // D points back to B, creating a cycle A -> B -> C -> D -> B
+
+      expect(() =>
+        reduce(nodeA, {
+          childrenKey: "children",
+          reduceFn: (node, acc) => acc + node.value,
+          initialVal: "",
+        })
+      ).toThrow("Circular reference detected")
+    })
+  })
 })

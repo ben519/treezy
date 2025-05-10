@@ -98,6 +98,9 @@ export function insert<
   const nodeToInsert = options.nodeToInsert
   const testFn = options.testFn ?? (() => true)
 
+  // Make a Weak Set to keep track of nodes for circular reference
+  const visitedNodesSet = new WeakSet()
+
   // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
@@ -111,6 +114,7 @@ export function insert<
     copy ? structuredClone(tree) : tree,
     null,
     0,
+    visitedNodesSet,
     helperOptions
   )
 }
@@ -124,9 +128,14 @@ function insertHelper<
   node: TCurrentNode,
   parent: TCurrentNode | null,
   depth: number,
+  visited: WeakSet<object>,
   options: HelperOptions<TChildrenKey, TCurrentNode>
 ): TCurrentNode | undefined {
   const { testFn, direction, childrenKey, nodeToInsert } = options
+
+  // Check if this node has already been visited
+  if (visited.has(node)) throw new Error("Circular reference detected")
+  visited.add(node)
 
   // If this node passes testFn, insert nodeToInsert
   if (testFn(node, parent, depth)) {
@@ -168,10 +177,11 @@ function insertHelper<
 
   // Recursively check each child subtree
   for (const child of childrenArray ?? []) {
-    const wasInserted = insertHelper(child, node, depth + 1, options)
+    const wasInserted = insertHelper(child, node, depth + 1, visited, options)
     if (wasInserted) return node
   }
 
   // If we made it this far, this tree doesn't have a matching node
+  visited.delete(node)
   return undefined
 }

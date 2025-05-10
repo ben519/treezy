@@ -260,4 +260,104 @@ describe("contains function", () => {
       expect(result).toBe(true)
     })
   })
+
+  // Tests for circular references
+  describe("with circular references", () => {
+    test("should throw 'Circular reference detected' for a direct child loop", () => {
+      const node1: Node<"children"> = { id: 1, name: "node1" }
+      const node2: Node<"children"> = {
+        id: 2,
+        name: "node2",
+        children: [node1],
+      }
+      // Create a circular reference: node1's child is node2
+      node1.children = [node2]
+
+      const tree = node1
+
+      expect(() =>
+        contains(tree, { childrenKey: "children", testFn: () => false })
+      ).toThrow("Circular reference detected")
+    })
+
+    test("should throw 'Circular reference detected' for a grandchild loop", () => {
+      const node1: Node<"children"> = { id: 1, name: "node1" }
+      const node2: Node<"children"> = { id: 2, name: "node2", children: [] }
+      const node3: Node<"children"> = {
+        id: 3,
+        name: "node3",
+        children: [node1],
+      }
+      node1.children = [node2]
+      node2.children = [node3] // Create a circular reference: node2's child is node3, which has node1 as child
+
+      const tree = node1
+
+      expect(() =>
+        contains(tree, { childrenKey: "children", testFn: () => false })
+      ).toThrow("Circular reference detected")
+    })
+
+    test("should throw 'Circular reference detected' for a complex circular reference across branches", () => {
+      const nodeA: Node<"children"> = { id: "A", name: "Node A", children: [] }
+      const nodeB: Node<"children"> = { id: "B", name: "Node B", children: [] }
+      const nodeC: Node<"children"> = {
+        id: "C",
+        name: "Node C",
+        children: [nodeA],
+      }
+      const nodeD: Node<"children"> = {
+        id: "D",
+        name: "Node D",
+        children: [nodeB],
+      }
+
+      nodeA.children = [nodeD] // Create a circular reference: A -> D -> B
+      nodeB.children = [nodeC] // B -> C -> A (completing the circle)
+
+      const tree = nodeA
+
+      expect(() =>
+        contains(tree, { childrenKey: "children", testFn: () => false })
+      ).toThrow("Circular reference detected")
+    })
+
+    test("should not throw if a node is referenced multiple times but not in a cycle", () => {
+      const sharedNode: Node<"children"> = {
+        id: 100,
+        name: "Shared Node",
+      }
+
+      const tree: Node<"children"> = {
+        id: 1,
+        name: "root",
+        children: [
+          { id: 2, name: "child1", children: [sharedNode] },
+          { id: 3, name: "child2", children: [sharedNode] }, // sharedNode is referenced twice
+        ],
+      }
+
+      // This should not throw, as there's no circular path back to an ancestor
+      expect(() =>
+        contains(tree, { childrenKey: "children", testFn: () => false })
+      ).not.toThrow()
+
+      // And it should still find a node if present
+      const result = contains(tree, {
+        childrenKey: "children",
+        testFn: (node) => node.id === 100,
+      })
+      expect(result).toBe(true)
+    })
+
+    test("should handle circular reference involving the root node", () => {
+      const root: Node<"children"> = { id: 1, name: "root", children: [] }
+      const child: Node<"children"> = { id: 2, name: "child", children: [root] } // Child points back to root
+      root.children = [child]
+
+      expect(() =>
+        contains(root, { childrenKey: "children", testFn: () => false })
+      ).toThrow("Circular reference detected")
+    })
+  })
 })

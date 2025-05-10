@@ -150,4 +150,99 @@ describe("getDepth", () => {
 
     expect(getDepth(deepTree, { childrenKey: "children" })).toBe(10)
   })
+
+  // --- Tests for Circular References ---
+
+  // Test case 10: Direct self-reference
+  test("throws 'Circular reference detected' for a direct self-reference", () => {
+    const circularNode: Node<"children"> = { value: "circular", children: [] }
+    // @ts-ignore - Intentionally creating a circular reference for testing
+    circularNode.children.push(circularNode)
+
+    expect(() => getDepth(circularNode, { childrenKey: "children" })).toThrow(
+      "Circular reference detected"
+    )
+  })
+
+  // Test case 11: Child references parent
+  test("throws 'Circular reference detected' when a child references its parent", () => {
+    const root: Node<"children"> = { value: "root", children: [] }
+    const child: Node<"children"> = { value: "child", children: [] }
+    root.children!.push(child)
+    // @ts-ignore - Intentionally creating a circular reference for testing
+    child.children.push(root)
+
+    expect(() => getDepth(root, { childrenKey: "children" })).toThrow(
+      "Circular reference detected"
+    )
+  })
+
+  // Test case 12: Grandchild references grandparent
+  test("throws 'Circular reference detected' when a grandchild references a grandparent", () => {
+    const root: Node<"children"> = { value: "root", children: [] }
+    const child: Node<"children"> = { value: "child", children: [] }
+    const grandchild: Node<"children"> = { value: "grandchild", children: [] }
+    root.children!.push(child)
+    child.children!.push(grandchild)
+    // @ts-ignore - Intentionally creating a circular reference for testing
+    grandchild.children.push(root)
+
+    expect(() => getDepth(root, { childrenKey: "children" })).toThrow(
+      "Circular reference detected"
+    )
+  })
+
+  // Test case 13: Circular reference within a deeper branch
+  test("throws 'Circular reference detected' for a circular reference in a deeper branch", () => {
+    const root: Node<"children"> = {
+      value: "root",
+      children: [
+        { value: "child1", children: [] },
+        { value: "child2", children: [] },
+      ],
+    }
+    const branchNode: Node<"children"> = { value: "branch", children: [] }
+    const circularNode: Node<"children"> = { value: "circular", children: [] }
+
+    root.children!.push(branchNode)
+    branchNode.children!.push(circularNode)
+    // @ts-ignore - Intentionally creating a circular reference for testing
+    circularNode.children.push(branchNode) // circular reference back to branchNode
+
+    expect(() => getDepth(root, { childrenKey: "children" })).toThrow(
+      "Circular reference detected"
+    )
+  })
+
+  // Test case 14: Circular reference across different branches
+  test("throws 'Circular reference detected' for a circular reference across branches", () => {
+    const root: Node<"children"> = { value: "root", children: [] }
+    const branchA: Node<"children"> = { value: "branchA", children: [] }
+    const branchB: Node<"children"> = { value: "branchB", children: [] }
+    const nodeA: Node<"children"> = { value: "nodeA", children: [] }
+    const nodeB: Node<"children"> = { value: "nodeB", children: [] }
+
+    root.children!.push(branchA, branchB)
+    branchA.children!.push(nodeA)
+    branchB.children!.push(nodeB)
+    // @ts-ignore - Creating a cycle: nodeA -> nodeB -> nodeA
+    nodeA.children.push(nodeB)
+    // @ts-ignore - Creating a cycle: nodeA -> nodeB -> nodeA
+    nodeB.children.push(nodeA)
+
+    expect(() => getDepth(root, { childrenKey: "children" })).toThrow(
+      "Circular reference detected"
+    )
+  })
+
+  // Test case 15: Root references itself
+  test("throws 'Circular reference detected' when the root node references itself", () => {
+    const root: Node<"children"> = { value: "root", children: [] }
+    // @ts-ignore - Intentionally creating a circular reference for testing
+    root.children.push(root)
+
+    expect(() => getDepth(root, { childrenKey: "children" })).toThrow(
+      "Circular reference detected"
+    )
+  })
 })

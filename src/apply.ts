@@ -284,18 +284,20 @@ export function applyHelper<
   if (visited.has(node)) throw new Error("Circular reference detected")
   visited.add(node)
 
+  // If this node passes testFn, run applyFn on it
   if (testFn(node, parent, depth)) {
     applyFn(node, parent, depth)
   }
 
+  // Get the children array
   const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
-  if (!childrenArray || childrenArray.length === 0) {
-    return node
-  }
 
-  for (const child of childrenArray) {
+  // Recursively modify this node's children
+  for (const child of childrenArray ?? []) {
     applyHelper(child, node, depth + 1, visited, options)
   }
 
+  // Return the (possibly modified) input node
+  visited.delete(node)
   return node
 }

@@ -216,4 +216,30 @@ describe("getSize function", () => {
       expect(dirCount).toBe(2)
     })
   })
+
+  describe("Circular reference detection", () => {
+    test("throws on direct circular reference", () => {
+      const tree: any = { id: 1 }
+      tree.children = [tree] // Self-reference
+
+      expect(() => getSize(tree, { childrenKey: "children" })).toThrow(
+        "Circular reference detected"
+      )
+    })
+
+    test("throws on indirect circular reference", () => {
+      const child1: any = { id: 2 }
+      const child2: any = { id: 3 }
+      const tree: any = {
+        id: 1,
+        children: [child1],
+      }
+      child1.children = [child2]
+      child2.children = [tree] // Back-reference to root
+
+      expect(() => getSize(tree, { childrenKey: "children" })).toThrow(
+        "Circular reference detected"
+      )
+    })
+  })
 })

@@ -111,7 +111,7 @@ const tree4 = {
 - `treezy` functions operate on their input arguments by reference, by default
 - `treezy` always scans in depth-first search, pre-order
 - `treezy` expects every tree to have exactly one root node and considers the root depth to be 0
-- The parent of a root node is `null`
+- `treezy` considers the parent of a root node to be `null`
 
 ## API
 

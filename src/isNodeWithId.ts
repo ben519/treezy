@@ -39,7 +39,12 @@ export function isNodeWithId<
     if (!Array.isArray(maybeChildren)) return false
 
     // Recursively check the children
-    return maybeChildren.every((child) => check(child, visited))
+    const result = maybeChildren.every((child) => check(child, visited))
+
+    // Remove this node from visited
+    visited.delete(val)
+
+    return result
   }
 
   return check(value, visitedNodesSet)

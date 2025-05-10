@@ -411,4 +411,51 @@ describe("isNodeUniformNode", () => {
       }
     })
   })
+
+  describe("circular reference detection", () => {
+    it("should throw an error for a direct circular reference", () => {
+      const node: any = {
+        id: 1,
+        name: "Root",
+      }
+      node.children = [node] // circular reference
+
+      console.dir(node, { depth: 4 })
+
+      expect(() => isNodeUniformNode(node, options)).toThrow(
+        "Circular reference detected"
+      )
+    })
+
+    it("should throw an error for a deep circular reference", () => {
+      const child: any = {
+        id: 2,
+        name: "Child",
+      }
+
+      const node: any = {
+        id: 1,
+        name: "Parent",
+        children: [child],
+      }
+
+      child.children = [node] // circular reference
+
+      expect(() => isNodeUniformNode(node, options)).toThrow(
+        "Circular reference detected"
+      )
+    })
+
+    it("should throw an error for a circular reference with custom childrenKey", () => {
+      const node: any = {
+        id: 1,
+        name: "CustomRoot",
+      }
+      node.items = [node] // circular reference using custom key
+
+      expect(() => isNodeUniformNode(node, customOptions)).toThrow(
+        "Circular reference detected"
+      )
+    })
+  })
 })

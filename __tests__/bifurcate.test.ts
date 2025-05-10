@@ -344,4 +344,127 @@ describe("bifurcate function", () => {
       })
     })
   })
+
+  // Circular reference tests
+  describe("circular reference detection", () => {
+    test("should throw error when direct circular reference exists in tree", () => {
+      const child: Node<"children"> = { id: "child" }
+      const tree: Node<"children"> = {
+        id: "root",
+        children: [child],
+      }
+
+      // Create circular reference
+      child.children = [tree]
+
+      expect(() => {
+        bifurcate(tree, {
+          childrenKey: "children",
+          testFn: (node) => node.id === "nonexistent",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should throw error when indirect circular reference exists in tree", () => {
+      const grandchild: Node<"children"> = { id: "grandchild" }
+      const child: Node<"children"> = { id: "child", children: [grandchild] }
+      const tree: Node<"children"> = {
+        id: "root",
+        children: [child],
+      }
+
+      // Create circular reference
+      grandchild.children = [tree]
+
+      expect(() => {
+        bifurcate(tree, {
+          childrenKey: "children",
+          testFn: (node) => node.id === "nonexistent",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should throw error when node references itself", () => {
+      const tree: Node<"children"> = {
+        id: "root",
+      }
+
+      // Create self-reference
+      tree.children = [tree]
+
+      expect(() => {
+        bifurcate(tree, {
+          childrenKey: "children",
+          testFn: (node) => node.id === "nonexistent",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should throw error when circular reference exists with custom childrenKey", () => {
+      type CustomNode = Node<"items">
+
+      const child: CustomNode = { id: "child" }
+      const tree: CustomNode = {
+        id: "root",
+        items: [child],
+      }
+
+      // Create circular reference
+      child.items = [tree]
+
+      expect(() => {
+        bifurcate(tree, {
+          childrenKey: "items",
+          testFn: (node) => node.id === "nonexistent",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should throw error when circular reference exists in UniformNode type", () => {
+      interface TestProps {
+        id: string
+        value?: number
+      }
+
+      const child: UniformNode<"children", TestProps> = {
+        id: "child",
+        value: 2,
+      }
+
+      const tree: UniformNode<"children", TestProps> = {
+        id: "root",
+        value: 1,
+        children: [child],
+      }
+
+      // Create circular reference
+      child.children = [tree]
+
+      expect(() => {
+        bifurcate(tree, {
+          childrenKey: "children",
+          testFn: (node) => node.id === "nonexistent",
+        })
+      }).toThrow("Circular reference detected")
+    })
+
+    test("should not throw error for similar but distinct nodes", () => {
+      // Create two nodes with the same properties but different references
+      const tree: Node<"children"> = {
+        id: "root",
+        children: [
+          { id: "child", data: "same data" },
+          { id: "child", data: "same data" },
+        ],
+      }
+
+      // This should not throw as these are distinct objects despite having identical properties
+      expect(() => {
+        bifurcate(tree, {
+          childrenKey: "children",
+          testFn: (node) => node.id === "nonexistent",
+        })
+      }).not.toThrow()
+    })
+  })
 })
