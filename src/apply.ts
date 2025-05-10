@@ -1,18 +1,45 @@
 import { Node, UniformNode } from "./types.js"
 
-// Options for when the input tree is a generic Node
+/**
+ * Configuration options for applying transformations to generic tree nodes.
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TInputNode - The type of input nodes in the tree
+ * @template TResult - The type of nodes after transformation
+ */
 interface GenericNodeOptions<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey>,
   TResult extends Node<TChildrenKey>
 > {
+  /**
+   * Function to apply to nodes that match the test condition
+   * @param node - The current node being processed
+   * @param parent - The parent node (null for root node)
+   * @param depth - Current depth in the tree (0 for root)
+   * @returns The transformed node
+   */
   applyFn: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => TResult
+  /**
+   * Property key used to access a node's children
+   */
   childrenKey: TChildrenKey
+  /**
+   * Whether to create a deep copy of the tree before applying transformations
+   * @default false
+   */
   copy?: boolean
+  /**
+   * Function to test if a node should be transformed
+   * @param node - The current node being tested
+   * @param parent - The parent node (null for root node)
+   * @param depth - Current depth in the tree (0 for root)
+   * @returns Boolean indicating whether to apply the transformation
+   * @default () => true (transforms all nodes)
+   */
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
@@ -20,20 +47,49 @@ interface GenericNodeOptions<
   ) => boolean
 }
 
-// Options specifically for when the input tree is a UniformNode
+/**
+ * Configuration options for applying transformations to uniform tree nodes
+ * (nodes with consistent property shapes).
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TProps - The shape of properties consistent across all nodes
+ * @template TInputNode - The type of input nodes in the tree
+ * @template TResult - The type of nodes after transformation
+ */
 interface UniformNodeOptions<
   TChildrenKey extends string,
-  TExtraProps extends object,
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps>,
+  TProps extends object,
+  TInputNode extends UniformNode<TChildrenKey, TProps>,
   TResult extends Node<TChildrenKey>
 > {
+  /**
+   * Function to apply to nodes that match the test condition
+   * @param node - The current node being processed
+   * @param parent - The parent node (null for root node)
+   * @param depth - Current depth in the tree (0 for root)
+   * @returns The transformed node
+   */
   applyFn: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => TResult
+  /**
+   * Property key used to access a node's children
+   */
   childrenKey: TChildrenKey
+  /**
+   * Whether to create a deep copy of the tree before applying transformations
+   * @default false
+   */
   copy?: boolean
+  /**
+   * Function to test if a node should be transformed
+   * @param node - The current node being tested
+   * @param parent - The parent node (null for root node)
+   * @param depth - Current depth in the tree (0 for root)
+   * @returns Boolean indicating whether to apply the transformation
+   * @default () => true (transforms all nodes)
+   */
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
@@ -41,20 +97,32 @@ interface UniformNodeOptions<
   ) => boolean
 }
 
-// --- Helper Options ---
-// This interface defines the shape of options the recursive helper will use.
-// TCurrentNode represents the type of the node currently being processed by the helper.
+/**
+ * Internal options used by the helper function
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TCurrentNode - The type of the current node being processed
+ * @template TResult - The type of nodes after transformation
+ */
 interface HelperOptions<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey>,
   TResult extends Node<TChildrenKey>
 > {
+  /**
+   * Function to apply to nodes that match the test condition
+   */
   applyFn: (
     node: TCurrentNode,
     parent: TCurrentNode | null,
     depth: number
   ) => TResult
+  /**
+   * Property key used to access a node's children
+   */
   childrenKey: TChildrenKey
+  /**
+   * Function to test if a node should be transformed
+   */
   testFn: (
     node: TCurrentNode,
     parent: TCurrentNode | null,
@@ -62,44 +130,52 @@ interface HelperOptions<
   ) => boolean
 }
 
-// --- apply Function Overloads ---
-
-// Overload 1:
-// tree is a UniformNode
-// testFn returns literal true ⇒ always TResult
+/**
+ * Traverses a tree structure and applies transformations to nodes matching criteria.
+ * This version applies to uniform nodes where testFn always returns true.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TProps - The shape of properties consistent across all nodes
+ * @template TInputNode - The type of input nodes in the tree
+ * @template TResult - The type of nodes after transformation
+ *
+ * @param tree - The root node of the tree to traverse
+ * @param options - Configuration options for the traversal
+ * @returns The transformed tree, with guaranteed type TResult
+ */
 export function apply<
   TChildrenKey extends string,
-  TExtraProps extends object,
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps>,
+  TProps extends object,
+  TInputNode extends UniformNode<TChildrenKey, TProps>,
   TResult extends Node<TChildrenKey>
 >(
   tree: TInputNode,
-  options: UniformNodeOptions<
-    TChildrenKey,
-    TExtraProps,
-    TInputNode,
-    TResult
-  > & {
+  options: UniformNodeOptions<TChildrenKey, TProps, TInputNode, TResult> & {
     testFn: (node: TInputNode, parent: TInputNode | null, depth: number) => true
   }
 ): TResult
 
-// Overload 2:
-// tree is a UniformNode
-// testFn returns literal false ⇒ always TInputNode
+/**
+ * Traverses a tree structure and applies transformations to nodes matching criteria.
+ * This version applies to uniform nodes where testFn always returns false.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TProps - The shape of properties consistent across all nodes
+ * @template TInputNode - The type of input nodes in the tree
+ * @template TResult - The type of nodes after transformation
+ *
+ * @param tree - The root node of the tree to traverse
+ * @param options - Configuration options for the traversal
+ * @returns The original tree, unchanged with type TInputNode
+ */
 export function apply<
   TChildrenKey extends string,
-  TExtraProps extends object,
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps>,
+  TProps extends object,
+  TInputNode extends UniformNode<TChildrenKey, TProps>,
   TResult extends Node<TChildrenKey>
 >(
   tree: TInputNode,
-  options: UniformNodeOptions<
-    TChildrenKey,
-    TExtraProps,
-    TInputNode,
-    TResult
-  > & {
+  options: UniformNodeOptions<TChildrenKey, TProps, TInputNode, TResult> & {
     testFn: (
       node: TInputNode,
       parent: TInputNode | null,
@@ -108,22 +184,41 @@ export function apply<
   }
 ): TInputNode
 
-// Overload 3:
-// tree is a UniformNode
-// testFn returns true or false ⇒ TInputNode | TResult
+/**
+ * Traverses a tree structure and applies transformations to nodes matching criteria.
+ * This version applies to uniform nodes where testFn can return either true or false.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TProps - The shape of properties consistent across all nodes
+ * @template TInputNode - The type of input nodes in the tree
+ * @template TResult - The type of nodes after transformation
+ *
+ * @param tree - The root node of the tree to traverse
+ * @param options - Configuration options for the traversal
+ * @returns Either the original tree or the transformed tree, with type TInputNode | TResult
+ */
 export function apply<
   TChildrenKey extends string,
-  TExtraProps extends object,
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps>,
+  TProps extends object,
+  TInputNode extends UniformNode<TChildrenKey, TProps>,
   TResult extends Node<TChildrenKey>
 >(
   tree: TInputNode,
-  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode, TResult>
+  options: UniformNodeOptions<TChildrenKey, TProps, TInputNode, TResult>
 ): TInputNode | TResult
 
-// Overload 4:
-// tree is a GenericNode
-// testFn returns literal true ⇒ TResult
+/**
+ * Traverses a tree structure and applies transformations to nodes matching criteria.
+ * This version applies to generic nodes where testFn always returns true.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TInputNode - The type of input nodes in the tree
+ * @template TResult - The type of nodes after transformation
+ *
+ * @param tree - The root node of the tree to traverse
+ * @param options - Configuration options for the traversal
+ * @returns The transformed tree, with guaranteed type TResult
+ */
 export function apply<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey>,
@@ -135,9 +230,18 @@ export function apply<
   }
 ): TResult
 
-// Overload 5:
-// tree is a GenericNode
-// testFn returns literal false ⇒ always TInputNode
+/**
+ * Traverses a tree structure and applies transformations to nodes matching criteria.
+ * This version applies to generic nodes where testFn always returns false.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TInputNode - The type of input nodes in the tree
+ * @template TResult - The type of nodes after transformation
+ *
+ * @param tree - The root node of the tree to traverse
+ * @param options - Configuration options for the traversal
+ * @returns The original tree, unchanged with type TInputNode
+ */
 export function apply<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey>,
@@ -153,9 +257,18 @@ export function apply<
   }
 ): TInputNode
 
-// Overload 6:
-// tree is a GenericNode
-// testFn returns true or false ⇒ TInputNode | TResult
+/**
+ * Traverses a tree structure and applies transformations to nodes matching criteria.
+ * This version applies to generic nodes where testFn can return either true or false.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TInputNode - The type of input nodes in the tree
+ * @template TResult - The type of nodes after transformation
+ *
+ * @param tree - The root node of the tree to traverse
+ * @param options - Configuration options for the traversal
+ * @returns Either the original tree or the transformed tree, with type TInputNode | TResult
+ */
 export function apply<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey>,
@@ -165,9 +278,18 @@ export function apply<
   options: GenericNodeOptions<TChildrenKey, TInputNode, TResult>
 ): TInputNode | TResult
 
-// --- apply Implementation ---
-// This single implementation handles both overload cases.
-// TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
+/**
+ * Implementation of the apply function that handles all overloaded variants.
+ * Traverses a tree structure and applies transformations to nodes matching criteria.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TInputNode - The type of input nodes in the tree
+ * @template TResult - The type of nodes after transformation
+ *
+ * @param tree - The root node of the tree to traverse
+ * @param options - Configuration options for the traversal
+ * @returns The processed tree
+ */
 export function apply<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey>,
@@ -207,9 +329,21 @@ export function apply<
   )
 }
 
-// --- applyHelper (Recursive Part) ---
-
-// --- overload 1: testFn returns literal true ⇒ always TResult
+/**
+ * Internal recursive helper function for tree traversal.
+ * This version handles nodes where testFn always returns true.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TCurrentNode - The type of the current node being processed
+ * @template TResult - The type of nodes after transformation
+ *
+ * @param node - The current node being processed
+ * @param parent - The parent node (null for the root)
+ * @param depth - Current depth in the tree (0 for the root node)
+ * @param visited - Set to track visited nodes and detect circular references
+ * @param options - Helper options for traversal
+ * @returns The transformed node
+ */
 export function applyHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey>,
@@ -231,7 +365,21 @@ export function applyHelper<
   }
 ): TResult
 
-// --- overload 2: testFn returns literal false ⇒ always TCurrentNode
+/**
+ * Internal recursive helper function for tree traversal.
+ * This version handles nodes where testFn always returns false.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TCurrentNode - The type of the current node being processed
+ * @template TResult - The type of nodes after transformation
+ *
+ * @param node - The current node being processed
+ * @param parent - The parent node (null for the root)
+ * @param depth - Current depth in the tree (0 for the root node)
+ * @param visited - Set to track visited nodes and detect circular references
+ * @param options - Helper options for traversal
+ * @returns The original node unchanged
+ */
 export function applyHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey>,
@@ -253,7 +401,21 @@ export function applyHelper<
   }
 ): TCurrentNode
 
-// --- overload 3: all other cases ⇒ union
+/**
+ * Internal recursive helper function for tree traversal.
+ * This version handles nodes where testFn can return either true or false.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TCurrentNode - The type of the current node being processed
+ * @template TResult - The type of nodes after transformation
+ *
+ * @param node - The current node being processed
+ * @param parent - The parent node (null for the root)
+ * @param depth - Current depth in the tree (0 for the root node)
+ * @param visited - Set to track visited nodes and detect circular references
+ * @param options - Helper options for traversal
+ * @returns Either the original node or the transformed node
+ */
 export function applyHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey>,
@@ -266,7 +428,22 @@ export function applyHelper<
   options: HelperOptions<TChildrenKey, TCurrentNode, TResult>
 ): TResult | TCurrentNode
 
-// --- single implementation for all three overloads
+/**
+ * Implementation of the applyHelper function that handles all overloaded variants.
+ * Recursively traverses the tree and applies transformations to nodes matching the test condition.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TCurrentNode - The type of the current node being processed
+ * @template TResult - The type of nodes after transformation
+ *
+ * @param node - The current node being processed
+ * @param parent - The parent node (null for the root)
+ * @param depth - Current depth in the tree (0 for the root node)
+ * @param visited - Set to track visited nodes and detect circular references
+ * @param options - Helper options for traversal
+ * @returns The processed node
+ * @throws Error if a circular reference is detected
+ */
 export function applyHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey>,

@@ -420,8 +420,6 @@ describe("isNodeUniformNode", () => {
       }
       node.children = [node] // circular reference
 
-      console.dir(node, { depth: 4 })
-
       expect(() => isNodeUniformNode(node, options)).toThrow(
         "Circular reference detected"
       )

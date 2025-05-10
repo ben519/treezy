@@ -1,12 +1,30 @@
 import { Node, UniformNode } from "./types.js"
 
-// Options for when the input tree is a generic Node
+/**
+ * Configuration options for bifurcating generic tree nodes.
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TInputNode - The type of input nodes in the tree (defaults to Node<TChildrenKey>)
+ */
 interface GenericNodeOptions<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  /**
+   * Property key used to access a node's children
+   */
   childrenKey: TChildrenKey
+  /**
+   * Whether to create a deep copy of the tree before bifurcating
+   * @default false
+   */
   copy?: boolean
+  /**
+   * Function to test if a node should be extracted during bifurcation
+   * @param node - The current node being tested
+   * @param parent - The parent node (null for root node)
+   * @param depth - Current depth in the tree (0 for root)
+   * @returns Boolean indicating whether this node should be extracted
+   */
   testFn: (
     node: TInputNode,
     parent: TInputNode | null,
@@ -14,17 +32,37 @@ interface GenericNodeOptions<
   ) => boolean
 }
 
-// Options specifically for when the input tree is a UniformNode
+/**
+ * Configuration options for bifurcating uniform tree nodes
+ * (nodes with consistent property shapes).
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TProps - The shape of properties consistent across all nodes (defaults to generic object)
+ * @template TInputNode - The type of input nodes in the tree (defaults to UniformNode<TChildrenKey, TProps>)
+ */
 interface UniformNodeOptions<
   TChildrenKey extends string,
-  TExtraProps extends object = { [key: string]: unknown },
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
+  TProps extends object = { [key: string]: unknown },
+  TInputNode extends UniformNode<TChildrenKey, TProps> = UniformNode<
     TChildrenKey,
-    TExtraProps
+    TProps
   >
 > {
+  /**
+   * Property key used to access a node's children
+   */
   childrenKey: TChildrenKey
+  /**
+   * Whether to create a deep copy of the tree before bifurcating
+   * @default false
+   */
   copy?: boolean
+  /**
+   * Function to test if a node should be extracted during bifurcation
+   * @param node - The current node being tested
+   * @param parent - The parent node (null for root node)
+   * @param depth - Current depth in the tree (0 for root)
+   * @returns Boolean indicating whether this node should be extracted
+   */
   testFn: (
     node: TInputNode,
     parent: TInputNode | null,
@@ -32,14 +70,22 @@ interface UniformNodeOptions<
   ) => boolean
 }
 
-// --- Helper Options ---
-// This interface defines the shape of options the recursive helper will use.
-// TCurrentNode represents the type of the node currently being processed by the helper.
+/**
+ * Internal options used by the helper function
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TCurrentNode - The type of the current node being processed (defaults to Node<TChildrenKey>)
+ */
 interface HelperOptions<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  /**
+   * Property key used to access a node's children
+   */
   childrenKey: TChildrenKey
+  /**
+   * Function to test if a node should be extracted
+   */
   testFn: (
     node: TCurrentNode,
     parent: TCurrentNode | null,
@@ -47,27 +93,46 @@ interface HelperOptions<
   ) => boolean
 }
 
-// --- bifurcate Function Overloads ---
-
-// Overload 1: For UniformNode
-// When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
+/**
+ * Bifurcates (splits) a tree by extracting the first node that matches the test condition.
+ * This version handles uniform nodes with consistent property shapes.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TProps - The shape of properties consistent across all nodes
+ * @template TInputNode - The type of input nodes in the tree
+ *
+ * @param tree - The root node of the tree to bifurcate
+ * @param options - Configuration options for the bifurcation
+ * @returns An object containing the parent tree (with matching node removed) and the extracted child node,
+ *          or null for either if no match was found or if the root itself matched
+ */
 export function bifurcate<
   TChildrenKey extends string,
-  TExtraProps extends object = { [key: string]: unknown },
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
+  TProps extends object = { [key: string]: unknown },
+  TInputNode extends UniformNode<TChildrenKey, TProps> = UniformNode<
     TChildrenKey,
-    TExtraProps
+    TProps
   >
 >(
   tree: TInputNode,
-  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
+  options: UniformNodeOptions<TChildrenKey, TProps, TInputNode>
 ):
   | { parent: TInputNode; child: TInputNode }
   | { parent: null; child: TInputNode }
   | { parent: TInputNode; child: null }
 
-// Overload 2: For generic Node (this comes after more specific overloads)
-// When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
+/**
+ * Bifurcates (splits) a tree by extracting the first node that matches the test condition.
+ * This version handles generic nodes.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TInputNode - The type of input nodes in the tree
+ *
+ * @param tree - The root node of the tree to bifurcate
+ * @param options - Configuration options for the bifurcation
+ * @returns An object containing the parent tree (with matching node removed) and the extracted child node,
+ *          or null for either if no match was found or if the root itself matched
+ */
 export function bifurcate<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -79,14 +144,19 @@ export function bifurcate<
   | { parent: null; child: TInputNode }
   | { parent: TInputNode; child: null }
 
-// --- bifurcate Implementation ---
-// This single implementation handles both overload cases.
-// TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
-// Returns an object like { parent, child }
-// If the target node found, it will be the root of child
-// If the target node is not found, child will be null
-// parent will be the tree excluding child
-
+/**
+ * Implementation of the bifurcate function that handles all variants.
+ * Bifurcates (splits) a tree by extracting the first node that matches the test condition.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TInputNode - The type of input nodes in the tree
+ *
+ * @param tree - The root node of the tree to bifurcate
+ * @param options - Configuration options for the bifurcation
+ * @returns An object containing:
+ *          - parent: The original tree with the matching node removed (null if the root matched)
+ *          - child: The extracted node that matched the condition (null if no match was found)
+ */
 export function bifurcate<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -123,8 +193,22 @@ export function bifurcate<
   )
 }
 
-// --- bifurcateHelper (Recursive Part) ---
-// TCurrentNode is the type of the node being processed in *this specific recursive step*.
+/**
+ * Internal recursive helper function that performs the actual tree bifurcation.
+ *
+ * @template TChildrenKey - The property key used to access a node's children
+ * @template TCurrentNode - The type of the current node being processed
+ *
+ * @param node - The current node being processed
+ * @param parent - The parent node (null for the root)
+ * @param depth - Current depth in the tree (0 for the root node)
+ * @param visited - Set to track visited nodes and detect circular references
+ * @param options - Helper options for bifurcation
+ * @returns An object containing:
+ *          - parent: The modified tree with the matching node removed (null if the current node matched)
+ *          - child: The extracted node that matched the condition (null if no match was found in this subtree)
+ * @throws Error if a circular reference is detected
+ */
 function bifurcateHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>

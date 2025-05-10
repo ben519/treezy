@@ -1,12 +1,29 @@
 import { Node, UniformNode } from "./types.js"
 
-// Options for when the input tree is a generic Node
+/**
+ * Options for pruning a generic tree node structure.
+ *
+ * @template TChildrenKey - The string literal type representing the child node key.
+ * @template TInputNode - The node type extending `Node<TChildrenKey>`.
+ */
 interface GenericNodeOptions<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  /** The key on each node where child nodes are stored. */
   childrenKey: TChildrenKey
+
+  /** If true, the tree will be deep cloned before pruning. Defaults to false. */
   copy?: boolean
+
+  /**
+   * A predicate function that determines whether a node should be pruned.
+   *
+   * @param node - The current node being evaluated.
+   * @param parent - The parent of the current node, or null if root.
+   * @param depth - The depth of the current node in the tree.
+   * @returns `true` if the node should be pruned; otherwise `false`.
+   */
   testFn: (
     node: TInputNode,
     parent: TInputNode | null,
@@ -14,17 +31,35 @@ interface GenericNodeOptions<
   ) => boolean
 }
 
-// Options specifically for when the input tree is a UniformNode
+/**
+ * Options for pruning a uniform tree node structure with props.
+ *
+ * @template TChildrenKey - The key on the node that contains child nodes.
+ * @template TProps - An object representing the shape of node props.
+ * @template TInputNode - The node type extending `UniformNode`.
+ */
 interface UniformNodeOptions<
   TChildrenKey extends string,
-  TExtraProps extends object = { [key: string]: unknown },
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
+  TProps extends object = { [key: string]: unknown },
+  TInputNode extends UniformNode<TChildrenKey, TProps> = UniformNode<
     TChildrenKey,
-    TExtraProps
+    TProps
   >
 > {
+  /** The key on each node where child nodes are stored. */
   childrenKey: TChildrenKey
+
+  /** If true, the tree will be deep cloned before pruning. Defaults to false. */
   copy?: boolean
+
+  /**
+   * A predicate function that determines whether a node should be pruned.
+   *
+   * @param node - The current node being evaluated.
+   * @param parent - The parent of the current node, or null if root.
+   * @param depth - The depth of the current node in the tree.
+   * @returns `true` if the node should be pruned; otherwise `false`.
+   */
   testFn: (
     node: TInputNode,
     parent: TInputNode | null,
@@ -32,9 +67,12 @@ interface UniformNodeOptions<
   ) => boolean
 }
 
-// --- Helper Options ---
-// This interface defines the shape of options the recursive helper will use.
-// TCurrentNode represents the type of the node currently being processed by the helper.
+/**
+ * Internal helper options for recursive pruning logic.
+ *
+ * @template TChildrenKey - The key on each node where child nodes are stored.
+ * @template TCurrentNode - The current node type.
+ */
 interface HelperOptions<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -47,24 +85,39 @@ interface HelperOptions<
   ) => boolean
 }
 
-// --- prune Function Overloads ---
-
-// Overload 1: For UniformNode
-// When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
+/**
+ * Prunes nodes from a uniform tree based on a test function.
+ *
+ * @template TChildrenKey - The key that contains child nodes.
+ * @template TProps - Props object for each node.
+ * @template TInputNode - The input node type.
+ *
+ * @param tree - The root of the tree to prune.
+ * @param options - Options to control the pruning logic.
+ * @returns A pruned version of the tree or `null` if the root is pruned.
+ */
 export function prune<
   TChildrenKey extends string,
-  TExtraProps extends object = { [key: string]: unknown },
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
+  TProps extends object = { [key: string]: unknown },
+  TInputNode extends UniformNode<TChildrenKey, TProps> = UniformNode<
     TChildrenKey,
-    TExtraProps
+    TProps
   >
 >(
   tree: TInputNode,
-  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
+  options: UniformNodeOptions<TChildrenKey, TProps, TInputNode>
 ): TInputNode | null
 
-// Overload 2: For generic Node (this comes after more specific overloads)
-// When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
+/**
+ * Prunes nodes from a generic tree based on a test function.
+ *
+ * @template TChildrenKey - The key that contains child nodes.
+ * @template TInputNode - The input node type.
+ *
+ * @param tree - The root of the tree to prune.
+ * @param options - Options to control the pruning logic.
+ * @returns A pruned version of the tree or `null` if the root is pruned.
+ */
 export function prune<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -73,9 +126,16 @@ export function prune<
   options: GenericNodeOptions<TChildrenKey>
 ): TInputNode | null
 
-// --- prune Implementation ---
-// This single implementation handles both overload cases.
-// TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
+/**
+ * Implementation of the `prune` function with support for both generic and uniform nodes.
+ *
+ * @template TChildrenKey - The key used to access child nodes.
+ * @template TInputNode - The node type.
+ *
+ * @param tree - The root node of the tree to prune.
+ * @param options - Configuration for pruning behavior.
+ * @returns The pruned tree or null if the root is pruned.
+ */
 export function prune<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -85,21 +145,17 @@ export function prune<
     | GenericNodeOptions<TChildrenKey, TInputNode>
     | UniformNodeOptions<TChildrenKey, any, TInputNode>
 ): TInputNode | null {
-  // Resolve defaults
   const childrenKey = options.childrenKey
   const copy = options.copy ?? false
   const testFn = options.testFn
 
-  // Make a Weak Set to keep track of nodes for circular reference
   const visitedNodesSet = new WeakSet()
 
-  // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
     testFn,
   }
 
-  // Initial call to the recursive helper. TInputNode is the type of the root.
   return pruneHelper<TChildrenKey, TInputNode>(
     copy ? structuredClone(tree) : tree,
     null,
@@ -109,8 +165,19 @@ export function prune<
   )
 }
 
-// --- pruneHelper (Recursive Part) ---
-// TCurrentNode is the type of the node being processed in *this specific recursive step*.
+/**
+ * Recursively traverses and prunes nodes in a tree based on a test function.
+ *
+ * @template TChildrenKey - The key used to access child nodes.
+ * @template TCurrentNode - The current node type.
+ *
+ * @param node - The current node being processed.
+ * @param parent - The parent of the current node.
+ * @param depth - The depth of the current node in the tree.
+ * @param visited - A WeakSet to detect circular references.
+ * @param options - Helper options including `childrenKey` and `testFn`.
+ * @returns The pruned node, or `null` if it should be removed.
+ */
 function pruneHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -123,25 +190,20 @@ function pruneHelper<
 ): TCurrentNode | null {
   const { testFn, childrenKey } = options
 
-  // Check if this node has already been visited
   if (visited.has(node)) throw new Error("Circular reference detected")
   visited.add(node)
 
-  // Check if this node passes testFn
   if (testFn(node, parent, depth)) {
     return null
   }
 
-  // Get the children array
   const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
 
-  // If this is a leaf node...
   if (!childrenArray || childrenArray.length === 0) {
     visited.delete(node)
     return node
   }
 
-  // Prune each child of this node
   for (let i = childrenArray.length - 1; i >= 0; i--) {
     const child = childrenArray[i]
     const newChild = pruneHelper(child, node, depth + 1, visited, options)

@@ -1,43 +1,84 @@
 import { Node, UniformNode } from "./types.js"
 
-// Options for when the input tree is a generic Node
+/**
+ * Options for operating on a generic node tree.
+ *
+ * @template TChildrenKey - The string key used to access children in the node.
+ * @template TInputNode - The type of nodes in the tree, defaulting to `Node<TChildrenKey>`.
+ */
 interface GenericNodeOptions<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  /**
+   * Optional function to determine whether a node should be counted.
+   * @param node - The current node being visited.
+   * @param parent - The parent of the current node.
+   * @param depth - The depth of the current node in the tree.
+   * @returns `true` to count the node, `false` to skip it.
+   */
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
+
+  /** The key to access the node's children array. */
   childrenKey: TChildrenKey
 }
 
-// Options specifically for when the input tree is a UniformNode
+/**
+ * Options for operating on a uniform node tree where all nodes share the same shape.
+ *
+ * @template TChildrenKey - The string key used to access children in the node.
+ * @template TProps - The shape of the additional properties of the node.
+ * @template TInputNode - The type of the input node.
+ */
 interface UniformNodeOptions<
   TChildrenKey extends string,
-  TExtraProps extends object = { [key: string]: unknown },
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
+  TProps extends object = { [key: string]: unknown },
+  TInputNode extends UniformNode<TChildrenKey, TProps> = UniformNode<
     TChildrenKey,
-    TExtraProps
+    TProps
   >
 > {
+  /**
+   * Optional function to determine whether a node should be counted.
+   * @param node - The current node being visited.
+   * @param parent - The parent of the current node.
+   * @param depth - The depth of the current node in the tree.
+   * @returns `true` to count the node, `false` to skip it.
+   */
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
     depth: number
   ) => boolean
+
+  /** The key to access the node's children array. */
   childrenKey: TChildrenKey
 }
 
-// --- Helper Options ---
-// This interface defines the shape of options the recursive helper will use.
-// TCurrentNode represents the type of the node currently being processed by the helper.
+/**
+ * Internal helper options used by the recursive node-counting function.
+ *
+ * @template TChildrenKey - The key used to access children in the node.
+ * @template TCurrentNode - The node type used during recursion.
+ */
 interface HelperOptions<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  /** The key to access children in the current node. */
   childrenKey: TChildrenKey
+
+  /**
+   * A predicate function to determine if a node should be counted.
+   * @param node - The node being evaluated.
+   * @param parent - The parent of the node.
+   * @param depth - The depth of the node in the tree.
+   * @returns Whether the node should be included in the count.
+   */
   testFn: (
     node: TCurrentNode,
     parent: TCurrentNode | null,
@@ -45,32 +86,44 @@ interface HelperOptions<
   ) => boolean
 }
 
-// --- getSize Function Overloads ---
-
-// Overload 1: For UniformNode
-// When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
+/**
+ * Recursively counts the number of nodes in a tree that match a test function.
+ *
+ * @template TChildrenKey - The key used to access child nodes.
+ * @template TInputNode - The type of node used in the input tree.
+ * @template TProps - The shape of any extra node props, for uniform trees.
+ *
+ * @param tree - The root of the tree to count nodes from.
+ * @param options - Configuration options for how to traverse and filter nodes.
+ * @returns The number of nodes matching the provided criteria.
+ */
 export function getSize<
   TChildrenKey extends string,
-  TExtraProps extends object = { [key: string]: unknown },
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
+  TProps extends object = { [key: string]: unknown },
+  TInputNode extends UniformNode<TChildrenKey, TProps> = UniformNode<
     TChildrenKey,
-    TExtraProps
+    TProps
   >
 >(
   tree: TInputNode,
-  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
+  options: UniformNodeOptions<TChildrenKey, TProps, TInputNode>
 ): number
 
-// Overload 2: For generic Node (this comes after more specific overloads)
-// When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
+/**
+ * Overload of `getSize` for generic tree structures.
+ *
+ * @template TChildrenKey - The key used to access child nodes.
+ * @template TInputNode - The type of the input node.
+ *
+ * @param tree - The root of the generic node tree.
+ * @param options - Configuration options for traversal and filtering.
+ * @returns The number of nodes matching the criteria.
+ */
 export function getSize<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(tree: TInputNode, options: GenericNodeOptions<TChildrenKey>): number
 
-// --- getSize Implementation ---
-// This single implementation handles both overload cases.
-// TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
 export function getSize<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -80,20 +133,15 @@ export function getSize<
     | GenericNodeOptions<TChildrenKey, TInputNode>
     | UniformNodeOptions<TChildrenKey, any, TInputNode>
 ): number {
-  // Resolve defaults
   const childrenKey = options.childrenKey
   const testFn = options?.testFn ?? (() => true)
-
-  // Make a Weak Set to keep track of nodes for circular reference
   const visitedNodesSet = new WeakSet()
 
-  // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
     testFn,
   }
 
-  // Initial call to the recursive helper. TInputNode is the type of the root.
   return getSizeHelper<TChildrenKey, TInputNode>(
     tree,
     null,
@@ -103,8 +151,19 @@ export function getSize<
   )
 }
 
-// --- getSizeHelper (Recursive Part) ---
-// TCurrentNode is the type of the node being processed in *this specific recursive step*.
+/**
+ * Internal recursive function to count the number of nodes in the tree that match a predicate.
+ *
+ * @template TChildrenKey - The key used to access children from a node.
+ * @template TCurrentNode - The node type at the current level of recursion.
+ *
+ * @param node - The current node being visited.
+ * @param parent - The parent of the current node, or null if at the root.
+ * @param depth - The current depth in the tree.
+ * @param visited - A WeakSet used to track visited nodes to prevent infinite recursion.
+ * @param options - Helper options including the children key and test function.
+ * @returns The number of matching nodes in the current subtree.
+ */
 function getSizeHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -117,31 +176,18 @@ function getSizeHelper<
 ): number {
   const { childrenKey, testFn } = options
 
-  // Check if this node has already been visited
   if (visited.has(node)) throw new Error("Circular reference detected")
   visited.add(node)
 
-  // Evaluate the current node using the provided testFn.
-  // 'node' here is TCurrentNode, which matches what 'testFn' expects.
   const count = testFn(node, parent, depth) ? 1 : 0
-
-  // Get the children array.
-  // If TCurrentNode is UniformNode<C, E>, node[childrenKey] is UniformNode<C, E>[] by definition.
-  // If TCurrentNode is Node<C>, node[childrenKey] is Node<C>[] by definition.
-  // Therefore, elements of 'childrenArray' are indeed of type TCurrentNode.
-  // The type assertion here is justified by these definitions.
   const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
 
-  // If this is a leaf node...
   if (!childrenArray || childrenArray.length === 0) {
     visited.delete(node)
     return count
   }
 
-  // Recursively count descendants.
   const countDescendants = childrenArray.reduce((sum, childNode) => {
-    // 'childNode' is of type TCurrentNode.
-    // The same 'options' (including the testFn expecting TCurrentNode) are passed down.
     return sum + getSizeHelper(childNode, node, depth + 1, visited, options)
   }, 0)
 

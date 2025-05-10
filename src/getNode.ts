@@ -1,12 +1,29 @@
 import { Node, UniformNode } from "./types.js"
 
-// Options for when the input tree is a generic Node
+/**
+ * Options for traversing a generic tree structure.
+ *
+ * @template TChildrenKey - The key in each node that contains child nodes.
+ * @template TInputNode - The type of node in the tree.
+ */
 interface GenericNodeOptions<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 > {
+  /** The key used to access children from a node. */
   childrenKey: TChildrenKey
+
+  /** Whether to deep copy the input tree before processing. */
   copy?: boolean
+
+  /**
+   * A function used to test whether a node matches a certain condition.
+   * If the function returns true, traversal will stop and return that node.
+   *
+   * @param node - The current node being evaluated.
+   * @param parent - The parent of the current node.
+   * @param depth - The depth of the current node in the tree.
+   */
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
@@ -14,17 +31,34 @@ interface GenericNodeOptions<
   ) => boolean
 }
 
-// Options specifically for when the input tree is a UniformNode
+/**
+ * Options for traversing a tree of `UniformNode`s with additional props.
+ *
+ * @template TChildrenKey - The key in each node that contains child nodes.
+ * @template TProps - The additional properties present on each node.
+ * @template TInputNode - The type of node in the tree.
+ */
 interface UniformNodeOptions<
   TChildrenKey extends string,
-  TExtraProps extends object = { [key: string]: unknown },
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
+  TProps extends object = { [key: string]: unknown },
+  TInputNode extends UniformNode<TChildrenKey, TProps> = UniformNode<
     TChildrenKey,
-    TExtraProps
+    TProps
   >
 > {
+  /** The key used to access children from a node. */
   childrenKey: TChildrenKey
+
+  /** Whether to deep copy the input tree before processing. */
   copy?: boolean
+
+  /**
+   * A function used to test whether a node matches a certain condition.
+   *
+   * @param node - The current node being evaluated.
+   * @param parent - The parent of the current node.
+   * @param depth - The depth of the current node in the tree.
+   */
   testFn?: (
     node: TInputNode,
     parent: TInputNode | null,
@@ -32,9 +66,12 @@ interface UniformNodeOptions<
   ) => boolean
 }
 
-// --- Helper Options ---
-// This interface defines the shape of options the recursive helper will use.
-// TCurrentNode represents the type of the node currently being processed by the helper.
+/**
+ * Internal options used by the recursive helper function.
+ *
+ * @template TChildrenKey - The key used to access children.
+ * @template TCurrentNode - The current node type.
+ */
 interface HelperOptions<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -47,24 +84,39 @@ interface HelperOptions<
   ) => boolean
 }
 
-// --- getNode Function Overloads ---
-
-// Overload 1: For UniformNode
-// When 'tree' is a UniformNode, 'options' should be UniformNodeOptions.
+/**
+ * Finds the first node in a tree that satisfies the provided test function.
+ * Accepts trees of uniform nodes with extra props.
+ *
+ * @template TChildrenKey - The key used to access children.
+ * @template TProps - The props object attached to each node.
+ * @template TInputNode - The type of node.
+ * @param tree - The root of the tree to search.
+ * @param options - Options for traversal and testing.
+ * @returns The first matching node, or undefined if none match.
+ */
 export function getNode<
   TChildrenKey extends string,
-  TExtraProps extends object = { [key: string]: unknown },
-  TInputNode extends UniformNode<TChildrenKey, TExtraProps> = UniformNode<
+  TProps extends object = { [key: string]: unknown },
+  TInputNode extends UniformNode<TChildrenKey, TProps> = UniformNode<
     TChildrenKey,
-    TExtraProps
+    TProps
   >
 >(
   tree: TInputNode,
-  options: UniformNodeOptions<TChildrenKey, TExtraProps, TInputNode>
+  options: UniformNodeOptions<TChildrenKey, TProps, TInputNode>
 ): TInputNode | undefined
 
-// Overload 2: For generic Node (this comes after more specific overloads)
-// When 'tree' is a generic Node, 'options' should be GenericNodeOptions.
+/**
+ * Finds the first node in a tree that satisfies the provided test function.
+ * Accepts generic nodes with a customizable children key.
+ *
+ * @template TChildrenKey - The key used to access children.
+ * @template TInputNode - The type of node.
+ * @param tree - The root of the tree to search.
+ * @param options - Options for traversal and testing.
+ * @returns The first matching node, or undefined if none match.
+ */
 export function getNode<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -73,9 +125,9 @@ export function getNode<
   options: GenericNodeOptions<TChildrenKey>
 ): TInputNode | undefined
 
-// --- getNode Implementation ---
-// This single implementation handles both overload cases.
-// TInputNode captures the type of the 'tree' argument (e.g., MyUniformNodeType or SomeGenericNodeType).
+/**
+ * Implementation of the `getNode` function overloads.
+ */
 export function getNode<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -85,21 +137,17 @@ export function getNode<
     | GenericNodeOptions<TChildrenKey, TInputNode>
     | UniformNodeOptions<TChildrenKey, any, TInputNode>
 ): TInputNode | undefined {
-  // Resolve defaults
   const childrenKey = options.childrenKey
   const copy = options.copy ?? false
   const testFn = options?.testFn ?? (() => true)
 
-  // Make a Weak Set to keep track of nodes for circular reference
   const visitedNodesSet = new WeakSet()
 
-  // Prepare options for the internal recursive helper.
   const helperOptions: HelperOptions<TChildrenKey, TInputNode> = {
     childrenKey,
     testFn,
   }
 
-  // Initial call to the recursive helper. TInputNode is the type of the root.
   return getNodeHelper<TChildrenKey, TInputNode>(
     copy ? structuredClone(tree) : tree,
     null,
@@ -109,8 +157,18 @@ export function getNode<
   )
 }
 
-// --- getNodeHelper (Recursive Part) ---
-// TCurrentNode is the type of the node being processed in *this specific recursive step*.
+/**
+ * Recursively searches a tree to find a node that satisfies the test function.
+ *
+ * @template TChildrenKey - The key used to access children.
+ * @template TCurrentNode - The type of the current node.
+ * @param node - The node to check.
+ * @param parent - The parent of the current node.
+ * @param depth - The current depth in the tree.
+ * @param visited - A WeakSet used to track visited nodes and prevent circular references.
+ * @param options - The helper options including the test function and children key.
+ * @returns The matching node if found, otherwise undefined.
+ */
 function getNodeHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
@@ -123,25 +181,20 @@ function getNodeHelper<
 ): TCurrentNode | undefined {
   const { testFn, childrenKey } = options
 
-  // Check if this node has already been visited
   if (visited.has(node)) throw new Error("Circular reference detected")
   visited.add(node)
 
-  // If this node passes testFn, return it
   if (testFn(node, parent, depth)) {
     return node
   }
 
-  // Get the children array
   const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
 
-  // Recursively check each child subtree
   for (const child of childrenArray ?? []) {
     const subtree = getNodeHelper(child, node, depth + 1, visited, options)
     if (subtree) return subtree
   }
 
-  // If we made it this far, this tree doesn't have a matching node
   visited.delete(node)
   return undefined
 }
