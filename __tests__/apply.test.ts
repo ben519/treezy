@@ -360,4 +360,225 @@ describe("apply function", () => {
       })
     }).toThrow("Circular reference detected")
   })
+
+  describe("apply function with firstOnly option", () => {
+    // Test firstOnly parameter with testFn
+    test("firstOnly applies transformation only to first matching node", () => {
+      const tree: Node<"children"> = {
+        value: 1,
+        children: [{ value: 2 }, { value: 3, children: [{ value: 4 }] }],
+      }
+
+      let modificationCount = 0
+
+      const result = apply(tree, {
+        childrenKey: "children",
+        applyFn: (node) => {
+          if (typeof node.value === "number") {
+            node.value = node.value * 10
+            modificationCount++
+          }
+          return node
+        },
+        testFn: (node) => typeof node.value === "number" && node.value > 1,
+        firstOnly: true,
+      })
+
+      // Only the first node with value > 1 should be modified
+      expect(modificationCount).toBe(1)
+      expect(result.value).toBe(1) // Root not modified (value = 1)
+      expect(result.children?.[0].value).toBe(20) // Modified: 2 * 10
+      expect(result.children?.[1].value).toBe(3) // Not modified
+      expect(result.children?.[1].children?.[0].value).toBe(4) // Not modified
+    })
+
+    // Test firstOnly parameter without testFn (should modify only root node)
+    test("firstOnly without testFn applies transformation only to root node", () => {
+      const tree: Node<"children"> = {
+        value: "root",
+        children: [
+          { value: "child1" },
+          { value: "child2", children: [{ value: "grandchild" }] },
+        ],
+      }
+
+      let modificationCount = 0
+
+      const result = apply(tree, {
+        childrenKey: "children",
+        applyFn: (node) => {
+          node.modified = true
+          modificationCount++
+          return node
+        },
+        firstOnly: true,
+      })
+
+      expect(modificationCount).toBe(1)
+      expect(result.modified).toBe(true)
+      expect(result.children?.[0].modified).toBeUndefined()
+      expect(result.children?.[1].modified).toBeUndefined()
+      expect(result.children?.[1].children?.[0].modified).toBeUndefined()
+    })
+
+    // Test firstOnly with depth-first traversal
+    test("firstOnly respects depth-first traversal", () => {
+      const tree: UniformNode<
+        "children",
+        { id: string; level: number; modified?: boolean }
+      > = {
+        id: "root",
+        level: 0,
+        children: [
+          {
+            id: "branch1",
+            level: 1,
+            children: [
+              { id: "leaf1", level: 2 },
+              { id: "leaf2", level: 2 },
+            ],
+          },
+          {
+            id: "branch2",
+            level: 1,
+            children: [{ id: "leaf3", level: 2 }],
+          },
+        ],
+      }
+
+      let lastModifiedId: string | null = null
+
+      const result = apply<
+        "children",
+        { id: string; level: number },
+        UniformNode<
+          "children",
+          { id: string; level: number; modified?: boolean }
+        >,
+        UniformNode<
+          "children",
+          {
+            id: string
+            level: number
+            modified?: boolean
+          }
+        >
+      >(tree, {
+        childrenKey: "children",
+        applyFn: (node) => {
+          node["modified"] = true
+          lastModifiedId = node.id
+          return node
+        },
+        testFn: (node) => node.level === 2,
+        firstOnly: true,
+      })
+
+      // The first level-2 node in depth-first traversal is "leaf1"
+      expect(lastModifiedId).toBe("leaf1")
+
+      // Only "leaf1" should be modified
+      // @ts-ignore
+      expect(result.modified).toBeUndefined()
+      // @ts-ignore
+      expect(result.children?.[0].modified).toBeUndefined()
+      // @ts-ignore
+      expect(result.children?.[0].children?.[0].modified).toBe(true)
+      // @ts-ignore
+      expect(result.children?.[0].children?.[1].modified).toBeUndefined()
+      // @ts-ignore
+      expect(result.children?.[1].children?.[0].modified).toBeUndefined()
+    })
+
+    // Test firstOnly with copy option
+    test("firstOnly works with copy option", () => {
+      const tree = {
+        value: 5,
+        children: [{ value: 10 }, { value: 15, children: [{ value: 20 }] }],
+      }
+
+      const originalTree = structuredClone(tree)
+
+      const result = apply(tree, {
+        childrenKey: "children",
+        applyFn: (node) => {
+          if (typeof node.value === "number") {
+            node.value = node.value * 2
+          }
+          return node
+        },
+        testFn: (node) => typeof node.value === "number" && node.value > 5,
+        firstOnly: true,
+        copy: true,
+      })
+
+      // Original tree should be unchanged
+      expect(tree).toEqual(originalTree)
+
+      // Only the first node with value > 5 should be modified
+      expect(result.value).toBe(5)
+      expect(result.children?.[0].value).toBe(20) // Modified: 10 * 2
+      expect(result.children?.[1].value).toBe(15) // Not modified
+      expect(result.children?.[1].children?.[0].value).toBe(20) // Not modified
+    })
+
+    // Test with no matching nodes
+    test("firstOnly works correctly when no nodes match testFn", () => {
+      const tree = {
+        value: 1,
+        children: [{ value: 2 }, { value: 3, children: [{ value: 4 }] }],
+      }
+
+      let modificationCount = 0
+
+      const result = apply(tree, {
+        childrenKey: "children",
+        applyFn: (node) => {
+          if (typeof node.value === "number") {
+            node.value = node.value * 10
+            modificationCount++
+          }
+          return node
+        },
+        testFn: (node) => typeof node.value === "number" && node.value > 100,
+        firstOnly: true,
+      })
+
+      // No nodes should be modified
+      expect(modificationCount).toBe(0)
+      expect(result.value).toBe(1)
+      expect(result.children?.[0].value).toBe(2)
+      expect(result.children?.[1].value).toBe(3)
+      expect(result.children?.[1].children?.[0].value).toBe(4)
+    })
+
+    // Test with firstOnly false behaves like original function
+    test("function behaves normally when firstOnly is false", () => {
+      const tree = {
+        value: 1,
+        children: [{ value: 2 }, { value: 3, children: [{ value: 4 }] }],
+      }
+
+      let modificationCount = 0
+
+      const result = apply(tree, {
+        childrenKey: "children",
+        applyFn: (node) => {
+          if (typeof node.value === "number" && node.value > 1) {
+            node.value = node.value * 10
+            modificationCount++
+          }
+          return node
+        },
+        firstOnly: false, // Explicitly set to false
+      })
+
+      // All matching nodes should be modified
+      expect(modificationCount).toBe(3)
+      expect(result.value).toBe(1)
+      expect(result.children?.[0].value).toBe(20)
+      expect(result.children?.[1].value).toBe(30)
+      expect(result.children?.[1].children?.[0].value).toBe(40)
+    })
+  })
 })

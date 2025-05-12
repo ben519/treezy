@@ -33,6 +33,11 @@ interface GenericNodeOptions<
    */
   copy?: boolean
   /**
+   * Whether to stop after the first transformation.
+   * @default false
+   */
+  firstOnly?: boolean
+  /**
    * Function to test if a node should be transformed
    * @param node - The current node being tested
    * @param parent - The parent node (null for root node)
@@ -83,6 +88,11 @@ interface UniformNodeOptions<
    */
   copy?: boolean
   /**
+   * Whether to stop after the first transformation.
+   * @default false
+   */
+  firstOnly?: boolean
+  /**
    * Function to test if a node should be transformed
    * @param node - The current node being tested
    * @param parent - The parent node (null for root node)
@@ -120,6 +130,11 @@ interface HelperOptions<
    * Property key used to access a node's children
    */
   childrenKey: TChildrenKey
+  /**
+   * Whether to stop after the first transformation.
+   * @default false
+   */
+  firstOnly: boolean
   /**
    * Function to test if a node should be transformed
    */
@@ -304,6 +319,7 @@ export function apply<
   const applyFn = options.applyFn
   const childrenKey = options.childrenKey
   const copy = options.copy ?? false
+  const firstOnly = options.firstOnly ?? false
   const testFn = options.testFn ?? (() => true)
 
   // Make a Weak Set to keep track of nodes for circular reference
@@ -316,17 +332,20 @@ export function apply<
   const helperOptions: HelperOptions<TChildrenKey, TInputNode, TResult> = {
     applyFn,
     childrenKey,
+    firstOnly,
     testFn,
   }
 
   // Initial call to the recursive helper. TInputNode is the type of the root.
-  return applyHelper<TChildrenKey, TInputNode, TResult>(
+  const result = applyHelper<TChildrenKey, TInputNode, TResult>(
     copy ? structuredClone(tree) : tree,
     null,
     0,
     visitedNodesSet,
     helperOptions
   )
+
+  return result.nodeOut
 }
 
 /**
@@ -363,7 +382,7 @@ export function applyHelper<
       depth: number
     ) => true
   }
-): TResult
+): { nodeOut: TResult; matchFound: boolean }
 
 /**
  * Internal recursive helper function for tree traversal.
@@ -378,7 +397,7 @@ export function applyHelper<
  * @param depth - Current depth in the tree (0 for the root node)
  * @param visited - Set to track visited nodes and detect circular references
  * @param options - Helper options for traversal
- * @returns The original node unchanged
+ * @returns An object with the original node unchanged and a boolean flag matchFound = false
  */
 export function applyHelper<
   TChildrenKey extends string,
@@ -399,7 +418,7 @@ export function applyHelper<
       depth: number
     ) => false
   }
-): TCurrentNode
+): { nodeOut: TCurrentNode; matchFound: boolean }
 
 /**
  * Internal recursive helper function for tree traversal.
@@ -414,7 +433,7 @@ export function applyHelper<
  * @param depth - Current depth in the tree (0 for the root node)
  * @param visited - Set to track visited nodes and detect circular references
  * @param options - Helper options for traversal
- * @returns Either the original node or the transformed node
+ * @returns An object with the (possibly) tranformed node and a boolean flag matchFound
  */
 export function applyHelper<
   TChildrenKey extends string,
@@ -426,7 +445,7 @@ export function applyHelper<
   depth: number,
   visited: WeakSet<object>,
   options: HelperOptions<TChildrenKey, TCurrentNode, TResult>
-): TResult | TCurrentNode
+): { nodeOut: TResult | TCurrentNode; matchFound: boolean }
 
 /**
  * Implementation of the applyHelper function that handles all overloaded variants.
@@ -441,7 +460,7 @@ export function applyHelper<
  * @param depth - Current depth in the tree (0 for the root node)
  * @param visited - Set to track visited nodes and detect circular references
  * @param options - Helper options for traversal
- * @returns The processed node
+ * @returns An object with the (possibly) tranformed node and a boolean flag matchFound
  * @throws Error if a circular reference is detected
  */
 export function applyHelper<
@@ -454,8 +473,8 @@ export function applyHelper<
   depth: number,
   visited: WeakSet<object>,
   options: HelperOptions<TChildrenKey, TCurrentNode, TResult>
-): any {
-  const { applyFn, testFn, childrenKey } = options
+): { nodeOut: TResult | TCurrentNode; matchFound: boolean } {
+  const { applyFn, childrenKey, firstOnly, testFn } = options
 
   // Check if this node has already been visited
   if (visited.has(node)) throw new Error("Circular reference detected")
@@ -463,7 +482,10 @@ export function applyHelper<
 
   // If this node passes testFn, run applyFn on it
   if (testFn(node, parent, depth)) {
-    applyFn(node, parent, depth)
+    const nodeOut = applyFn(node, parent, depth)
+    if (firstOnly) {
+      return { nodeOut, matchFound: true }
+    }
   }
 
   // Get the children array
@@ -471,10 +493,13 @@ export function applyHelper<
 
   // Recursively modify this node's children
   for (const child of childrenArray ?? []) {
-    applyHelper(child, node, depth + 1, visited, options)
+    const result = applyHelper(child, node, depth + 1, visited, options)
+    if (firstOnly && result.matchFound) {
+      return { nodeOut: node, matchFound: true }
+    }
   }
 
   // Return the (possibly modified) input node
   visited.delete(node)
-  return node
+  return { nodeOut: node, matchFound: false }
 }
