@@ -1,7 +1,7 @@
 import { Node, UniformNode } from "./types.js"
 
 /**
- * Options for traversing a generic node tree to find a parent node.
+ * Options for traversing a generic node tree to find a target node.
  *
  * @template TChildrenKey - The key used to access children in the node.
  * @template TInputNode - The type of node being processed.
@@ -28,7 +28,7 @@ interface GenericNodeOptions<
 }
 
 /**
- * Options for traversing a strongly-typed uniform node tree to find a parent node.
+ * Options for traversing a strongly-typed uniform node tree to find a target node.
  *
  * @template TChildrenKey - The key used to access children in the node.
  * @template TProps - The shape of properties each node contains.
@@ -78,13 +78,14 @@ interface HelperOptions<
 }
 
 /**
- * Finds the parent of a node in a uniform tree structure by using a test function.
+ * Finds the path to a target node from the root of a uniform tree structure by using
+ * a test function.
  *
  * @param tree - The root of the tree to search.
  * @param options - Options for traversal including test function and children key.
- * @returns The parent of the matching node or undefined if not found.
+ * @returns Array of nodes from root to target or undefined if target not found
  */
-export function getParent<
+export function getPath<
   TChildrenKey extends string,
   TProps extends object = { [key: string]: unknown },
   TInputNode extends UniformNode<TChildrenKey, TProps> = UniformNode<
@@ -94,27 +95,28 @@ export function getParent<
 >(
   tree: TInputNode,
   options: UniformNodeOptions<TChildrenKey, TProps, TInputNode>
-): TInputNode | null | undefined
+): [TInputNode, ...TInputNode[]] | undefined
 
 /**
- * Finds the parent of a node in a generic tree structure by using a test function.
+ * Finds the path to a target node from the root of a generic tree structure by using
+ * a test function.
  *
  * @param tree - The root of the tree to search.
  * @param options - Options for traversal including test function and children key.
- * @returns The parent of the matching node or undefined if not found.
+ * @returns Array of nodes from root to target or undefined if target not found
  */
-export function getParent<
+export function getPath<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
   tree: TInputNode,
   options: GenericNodeOptions<TChildrenKey>
-): TInputNode | null | undefined
+): [TInputNode, ...TInputNode[]] | undefined
 
 /**
- * Internal overload resolver for getParent, delegates to the recursive helper.
+ * Internal overload resolver for getPath, delegates to the recursive helper.
  */
-export function getParent<
+export function getPath<
   TChildrenKey extends string,
   TInputNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
@@ -122,7 +124,7 @@ export function getParent<
   options:
     | GenericNodeOptions<TChildrenKey, TInputNode>
     | UniformNodeOptions<TChildrenKey, any, TInputNode>
-): TInputNode | null | undefined {
+): [TInputNode, ...TInputNode[]] | undefined {
   const childrenKey = options.childrenKey
   const copy = options.copy ?? false
   const testFn = options.testFn
@@ -133,26 +135,18 @@ export function getParent<
     testFn,
   }
 
-  return getParentHelper<TChildrenKey, TInputNode>(
+  const path = getPathHelper<TChildrenKey, TInputNode>(
     copy ? structuredClone(tree) : tree,
     null,
     0,
     visitedNodesSet,
     helperOptions
   )
+
+  return path.length > 0 ? (path as [TInputNode, ...TInputNode[]]) : undefined
 }
 
-/**
- * Recursively traverses the tree to find the parent of a node that matches the test function.
- *
- * @param node - The current node in the traversal.
- * @param parent - The parent of the current node.
- * @param depth - The current depth in the tree.
- * @param visited - Set of visited nodes to avoid circular references.
- * @param options - Options including test function and children key.
- * @returns The parent of the matching node or undefined if not found.
- */
-function getParentHelper<
+function getPathHelper<
   TChildrenKey extends string,
   TCurrentNode extends Node<TChildrenKey> = Node<TChildrenKey>
 >(
@@ -161,29 +155,23 @@ function getParentHelper<
   depth: number,
   visited: WeakSet<object>,
   options: HelperOptions<TChildrenKey, TCurrentNode>
-): TCurrentNode | null | undefined {
+): TCurrentNode[] {
   const { childrenKey, testFn } = options
 
   if (visited.has(node)) throw new Error("Circular reference detected")
   visited.add(node)
 
   if (testFn(node, parent, depth)) {
-    return parent
+    return [node]
   }
 
   const childrenArray = node[childrenKey] as TCurrentNode[] | undefined
 
   for (const child of childrenArray ?? []) {
-    const parentInSubtree = getParentHelper(
-      child,
-      node,
-      depth + 1,
-      visited,
-      options
-    )
-    if (parentInSubtree) return parentInSubtree
+    const path = getPathHelper(child, node, depth + 1, visited, options)
+    if (path.length) return [node, ...path]
   }
 
   visited.delete(node)
-  return undefined
+  return []
 }

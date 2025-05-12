@@ -121,6 +121,7 @@ const tree4 = {
 - **`getDepth(tree, options)`** - get the number of nodes in a tree
 - **`getNode(tree, options)`** - find a node that passes some test and return it
 - **`getParent(tree, options)`** - find a node that passes some test and return its parent
+- **`getPath(tree, options)`** - get the path from the root to some node as an array of nodes
 - **`getSignature(tree, options)`** - combine the node ids and structure into a unique id
 - **`getSize(tree, options)`** - count the number of nodes in a tree
 - **`getValues(tree, options)`** - retrieve the nodes or node properties as an array
